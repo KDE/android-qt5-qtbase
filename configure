@@ -1,4 +1,5 @@
 #!/bin/sh
+
 #############################################################################
 ##
 ## Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
@@ -51,6 +52,16 @@ relpath=`dirname $0`
 relpath=`(cd "$relpath"; /bin/pwd)`
 # the current directory is the "build tree" or "object tree"
 outpath=`/bin/pwd`
+
+# Fix the paths. pwd -W returns C:/whatever
+if [ "msys" = "$OSTYPE" ]; then
+    pushd . > /dev/null
+    cd $relpath
+    relpath=`pwd -W`
+    cd $outpath
+    outpath=`pwd -W`
+    popd > /dev/null
+fi
 
 #license file location
 LICENSE_FILE="$QT_LICENSE_FILE"
@@ -351,6 +362,15 @@ UNAME_MACHINE=`(uname -m) 2>/dev/null` || UNAME_MACHINE=unknown
 UNAME_RELEASE=`(uname -r) 2>/dev/null` || UNAME_RELEASE=unknown
 UNAME_SYSTEM=`(uname -s) 2>/dev/null`  || UNAME_SYSTEM=unknown
 UNAME_VERSION=`(uname -v) 2>/dev/null` || UNAME_VERSION=unknown
+# early detection of Android, needed for linuxfb and linuxtp.
+XPLATFORM_ANDROID=no
+for ARG in $@
+do
+    if [ "$ARG" = "android-g++" ]; then
+        XPLATFORM_ANDROID=yes
+    fi
+done
+echo "XPLATFORM_ANDROID=$XPLATFORM_ANDROID"
 
 # detect the "echo without newline" style. usage: echo $ECHO_N "<string>$ECHO_C"
 if echo '\c' | grep '\c' >/dev/null; then
@@ -368,6 +388,13 @@ PLATFORM_MAC=no
 if [ -d /System/Library/Frameworks/Carbon.framework ]; then
     BUILD_ON_MAC=yes
     PLATFORM_MAC=maybe
+fi
+
+BUILD_ON_MSYS=no
+if [ "msys" = "$OSTYPE" ]; then
+    BUILD_ON_MSYS=yes
+else
+    BUILD_ON_MSYS=no
 fi
 
 #-----------------------------------------------------------------------------
@@ -774,7 +801,7 @@ CFG_SSE=auto
 CFG_FONTCONFIG=auto
 CFG_LIBFREETYPE=auto
 CFG_SQL_AVAILABLE=
-QT_DEFAULT_BUILD_PARTS="libs tools examples"
+QT_DEFAULT_BUILD_PARTS="libs tools"
 CFG_BUILD_PARTS=""
 CFG_NOBUILD_PARTS=""
 CFG_RELEASE_QMAKE=no
@@ -873,6 +900,9 @@ CFG_FORCE_ASSERTS=no
 CFG_PCRE=auto
 QPA_PLATFORM_GUARD=yes
 CFG_CXX11=auto
+CFG_OPENSSL_SOURCE=
+CFG_MS_BITFIELDS=no
+CFG_CROSS_QMAKE=
 
 # initalize variables used for installation
 QT_INSTALL_PREFIX=
@@ -1030,6 +1060,11 @@ while [ "$#" -gt 0 ]; do
             VAL=$1
         fi
 	;;
+    -openssl-source)
+        VAR="openssl-source"
+        shift
+        VAL="$1"
+    ;;
     -hostprefix)
         VAR=`echo $1 | sed "s,^-\(.*\),\1,"`
         # this option may or may not be followed by an argument
@@ -1047,6 +1082,11 @@ while [ "$#" -gt 0 ]; do
         ;;
     -qtlibinfix)
         VAR="qtlibinfix"
+        shift
+        VAL="$1"
+        ;;
+    -cross-qmake)
+        VAR="cross-qmake"
         shift
         VAL="$1"
         ;;
@@ -1364,6 +1404,9 @@ while [ "$#" -gt 0 ]; do
 	    if [ ! -z "$NATIVE_64_ARCH" ]; then
 		QTCONFIG_CONFIG="$QTCONFIG_CONFIG $NATIVE_64_ARCH"
             fi
+            ;;
+        win32-g++)
+            PLATFORM=win32-g++
             ;;
         esac
         ;;
@@ -1827,8 +1870,8 @@ while [ "$#" -gt 0 ]; do
     dbus)
         if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ] || [ "$VAL" = "linked" ]; then
             CFG_DBUS="$VAL"
-	elif [ "$VAL" = "runtime" ]; then
-	    CFG_DBUS="yes"
+        elif [ "$VAL" = "runtime" ]; then
+            CFG_DBUS="yes"
         else
             UNKNOWN_OPT=yes
         fi
@@ -1868,6 +1911,9 @@ while [ "$#" -gt 0 ]; do
             UNKNOWN_OPT=yes
         fi
         ;;
+    openssl-source)
+        CFG_OPENSSL_SOURCE="$VAL"
+        ;;
     qml-debug)
         if [ "$VAL" = "yes" ]; then
             CFG_QML_DEBUG="yes"
@@ -1880,7 +1926,7 @@ while [ "$#" -gt 0 ]; do
         fi
         ;;
     javascript-jit)
-        if [ "$VAL" = "yes" ] || [ "$VAL" = "auto" ] || [ "$VAL" = "no" ]; then 
+        if [ "$VAL" = "yes" ] || [ "$VAL" = "auto" ] || [ "$VAL" = "no" ]; then
             CFG_JAVASCRIPTCORE_JIT="$VAL"
         else
             UNKNOWN_OPT=yes
@@ -2080,6 +2126,24 @@ while [ "$#" -gt 0 ]; do
             UNKNOWN_OPT=yes
         fi
         ;;
+    cross-qmake)
+        CFG_CROSS_QMAKE=$VAL
+        QT_CROSS_COMPILE=yes
+        ;;
+    ms-bitfields)
+        if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ]; then
+            CFG_MS_BITFIELDS="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
+    BUILD_ON_MSYS)
+        if [ "$VAL" = "yes" ] || [ "$VAL" = "no" ]; then
+            BUILD_ON_MSYS="$VAL"
+        else
+            UNKNOWN_OPT=yes
+        fi
+        ;;
     *)
         UNKNOWN_OPT=yes
         ;;
@@ -2172,6 +2236,22 @@ if [ "$CFG_SILENT" = "yes" ]; then
     QMAKE_CONFIG="$QMAKE_CONFIG silent"
 fi
 
+if [ "$PLATFORM" = "win32-g++" ] || [ "$XPLATFORM" = "win32-g++" ] && [ "$CFG_MS_BITFIELDS" = "yes" ]; then
+    QMAKE_CONFIG="$QMAKE_CONFIG ms_bitfields"
+fi
+
+# Without this hack, OpenGLES2 test fails for Android:
+# (undefined reference to `android::egl_get_image_for_current_context(void*))')
+# See http://blog.vlad1.com/2010/03/19/things-i-learned-today-android-opengl-edition-2/
+# Hack is to add -Wl,-allow-shlib-undefined. Should do this for Android only though, but
+# at the minute I'm not sure if we're QPA,desktop or all of the above, so I've applied
+# it globally to all of the OpenGLES2 compile-tests. Very unlikely that it'd trip up
+# other platforms too.
+
+if [ "$XPLATFORM_ANDROID" = "yes" ]; then
+    ANDROID_GLES2_LFLAGS=-Wl,-allow-shlib-undefined
+fi
+
 # if the source tree is different from the build tree,
 # symlink or copy part of the sources
 if [ "$OPT_SHADOW" = "yes" ]; then
@@ -2216,7 +2296,11 @@ if [ "$OPT_SHADOW" = "yes" ]; then
     # symlink the mkspecs directory
     mkdir -p "$outpath/mkspecs"
     rm -rf "$outpath"/mkspecs/*
-    ln -s "$relpath"/mkspecs/* "$outpath/mkspecs"
+    if [ "$OSTYPE" = "msys" ] ; then
+        cp -rf "$relpath"/mkspecs "$outpath/"
+    else
+        ln -s "$relpath"/mkspecs/* "$outpath/mkspecs/"
+    fi
     rm -f "$outpath/mkspecs/default"
 
     ShadowMkspecs()
@@ -2465,6 +2549,7 @@ fi
 case `basename "$XPLATFORM"` in win32-g++*) XPLATFORM_MINGW=yes;; esac
 case "$XPLATFORM" in *-maemo*) XPLATFORM_MAEMO=yes;; esac
 case "$XPLATFORM" in *qnx-*|*blackberry-*) XPLATFORM_QNX=yes;; esac
+case "$XPLATFORM" in *android*) XPLATFORM_ANDROID=yes;; esac
 
 if [ -d "$PLATFORM" ]; then
   QMAKESPEC="$PLATFORM"
@@ -2476,7 +2561,7 @@ if [ -d "$XPLATFORM" ]; then
 else
   XQMAKESPEC="$relpath/mkspecs/${XPLATFORM}"
 fi
-if [ "$PLATFORM" != "$XPLATFORM" ]; then
+if [ "$PLATFORM" != "$XPLATFORM" ] || [ "$QT_CROSS_COMPILE" = "yes" ]; then
     QT_CROSS_COMPILE=yes
     QMAKE_CONFIG="$QMAKE_CONFIG cross_compile"
     QTCONFIG_CONFIG="$QTCONFIG_CONFIG cross_compile"
@@ -2597,6 +2682,19 @@ fi
 QMAKE_CONF_COMPILER=`getXQMakeConf QMAKE_CXX`
 
 TEST_COMPILER=$QMAKE_CONF_COMPILER
+
+if [ "$XPLATFORM_ANDROID" = "yes" ] ; then
+    # Repeat what mkspecs for android does. This is horrible, but I can't see a way around it given what getQMakeConf does.
+    NDK_TOOLCHAIN_PATH=$ANDROID_NDK_ROOT/toolchains/$ANDROID_NDK_TOOLCHAIN_PREFIX-$ANDROID_NDK_TOOLCHAIN_VERSION/prebuilt/$ANDROID_NDK_HOST
+    NDK_TOOLCHAIN_PREFIX=arm-linux-androideabi
+    # Replace all occourances of $$(EXAMPLE_VARIABLE) from qmake.conf with ${EXAMPLE_VARIABLE}
+    #  so we can eval it from shell script.
+    QMAKE_CONF_COMPILER=$NDK_TOOLCHAIN_PATH/$(echo "$QMAKE_CONF_COMPILER" | sed 's:\$\$(\([a-zA-Z_]*\)):\${\1}:g')
+
+    eval QMAKE_CONF_COMPILER=$QMAKE_CONF_COMPILER
+    TEST_COMPILER="$QMAKE_CONF_COMPILER --sysroot=$ANDROID_NDK_ROOT/platforms/android-5/arch-arm/"
+fi
+
 if [ "$XPLATFORM_SYMBIAN_SBSV2" = "no" ]; then
     if [ -z "$TEST_COMPILER" ]; then
         echo "ERROR: Cannot set the compiler for the configuration tests"
@@ -3461,6 +3559,12 @@ elif [ "$Edition" != "OpenSource" ]; then
             more "$outpath/LICENSE"
         fi
     done
+    MAC_CONFIG_TEST_COMMANDLINE="-arch i386 -arch x86_64"
+    CFG_MAC_ARCHS="x86 x86_64"
+fi
+
+if [ "$CFG_HOST_ARCH" = "macosx" ]; then
+    CFG_MAC_ARCHS="x86 x86_64"
 fi
 
 # this should be moved somewhere else
@@ -3583,7 +3687,11 @@ if true; then ###[ '!' -f "$outpath/bin/qmake" ];
 #           if which qmake >/dev/null 2>&1 && [ -f qmake/qmake.pro ]; then
 #               (cd qmake && qmake) >/dev/null 2>&1 && continue
 #           fi
-            in_mkfile="${mkfile}.unix"
+            if [ "$BUILD_ON_MSYS" = "yes" ]; then
+                in_mkfile="${mkfile}.win32-g++-sh"
+            else
+                in_mkfile="${mkfile}.unix"
+            fi
         fi
         in_mkfile="$relpath/qmake/$in_mkfile"
         mkfile="$outpath/qmake/$mkfile"
@@ -4001,6 +4109,14 @@ if [ "$CFG_ZLIB" = "auto" ]; then
     fi
 fi
 
+case "$XPLATFORM" in *android*)
+    QMakeVar add styles "android"
+    if compileTest unix/ipc_android "ipc_android"; then
+        QT_CONFIG="$QT_CONFIG ashmem"
+    fi
+esac
+
+
 if [ "$CFG_LARGEFILE" = "auto" ]; then
     #Large files should be enabled for all Linux systems
     CFG_LARGEFILE=yes
@@ -4074,12 +4190,12 @@ for _SQLDR in $CFG_SQL_AVAILABLE; do
         case $_SQLDR in
         mysql)
             if [ "$CFG_SQL_mysql" != "no" ]; then
-		[ -z "$CFG_MYSQL_CONFIG" ] && CFG_MYSQL_CONFIG=`"$WHICH" mysql_config`
+                [ -z "$CFG_MYSQL_CONFIG" ] && CFG_MYSQL_CONFIG=`"$WHICH" mysql_config`
                 if [ -x "$CFG_MYSQL_CONFIG" ]; then
                     QT_CFLAGS_MYSQL=`$CFG_MYSQL_CONFIG --include 2>/dev/null | filterIncludeOptions`
                     QT_LFLAGS_MYSQL_R=`$CFG_MYSQL_CONFIG --libs_r 2>/dev/null | filterLibraryOptions`
                     QT_LFLAGS_MYSQL=`$CFG_MYSQL_CONFIG --libs 2>/dev/null | filterLibraryOptions`
-		    QT_MYSQL_VERSION=`$CFG_MYSQL_CONFIG --version 2>/dev/null`
+                    QT_MYSQL_VERSION=`$CFG_MYSQL_CONFIG --version 2>/dev/null`
                     QT_MYSQL_VERSION_MAJOR=`echo $QT_MYSQL_VERSION | cut -d . -f 1`
                 fi
                 if [ -n "$QT_MYSQL_VERSION" ] && [ "$QT_MYSQL_VERSION_MAJOR" -lt 4 ]; then
@@ -4091,9 +4207,9 @@ for _SQLDR in $CFG_SQL_AVAILABLE; do
                         exit 101
                     else
                         CFG_SQL_mysql="no"
-			QT_LFLAGS_MYSQL=""
-			QT_LFLAGS_MYSQL_R=""
-			QT_CFLAGS_MYSQL=""
+                        QT_LFLAGS_MYSQL=""
+                        QT_LFLAGS_MYSQL_R=""
+                        QT_CFLAGS_MYSQL=""
                     fi
                 else
                     if compileTest unix/mysql_r "MySQL (thread-safe)" $QT_LFLAGS_MYSQL_R $QT_CFLAGS_MYSQL; then
@@ -5091,7 +5207,7 @@ if [ "$CFG_OPENSSL" != "no" ]; then
             CFG_OPENSSL=yes
         fi
     else
-        if ( [ "$CFG_OPENSSL" = "yes" ] || [ "$CFG_OPENSSL" = "linked" ] ) && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]; then
+        if ( [ "$CFG_OPENSSL" = "yes" ] || [ "$CFG_OPENSSL" = "linked" ] ) && [ "$CFG_CONFIGURE_EXIT_ON_ERROR" = "yes" ]  && [ "$XPLATFORM_ANDROID" = "no" ]; then
             echo "OpenSSL support cannot be enabled due to functionality tests!"
             echo " Turn on verbose messaging (-v) to $0 to see the final report."
             echo " If you believe this message is in error you may use the continue"
@@ -5166,7 +5282,7 @@ if [ "$CFG_ALSA" = "auto" ]; then
     fi
 fi
 
-if [ "$CFG_JAVASCRIPTCORE_JIT" = "yes" ] || [ "$CFG_JAVASCRIPTCORE_JIT" = "auto" ]; then 
+if [ "$CFG_JAVASCRIPTCORE_JIT" = "yes" ] || [ "$CFG_JAVASCRIPTCORE_JIT" = "auto" ]; then
     if [ "$CFG_ARCH" = "arm" ]; then
        compileTest unix/javascriptcore-jit "javascriptcore-jit"
         if [ $? != "0" ]; then
@@ -5497,7 +5613,7 @@ case "$XPLATFORM" in
 	# the assembly it generates cannot be compiled
 
 	# Check gcc's version
-	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
+	case "${QMAKE_CONF_COMPILER} -dumpversion" in
 	    4*)
 		;;
 	    3.4*)
@@ -5518,15 +5634,17 @@ case "$XPLATFORM" in
 	;;
     *-g++*)
 	# Check gcc's version
-	case "$(${QMAKE_CONF_COMPILER} -dumpversion)" in
+	case "${QMAKE_CONF_COMPILER} -dumpversion" in
 	    4*|3.4*)
 		;;
             3.3*)
                 canBuildWebKit="no"
                 ;;
 	    *)
-		canBuildWebKit="no"
-		canBuildQtXmlPatterns="no"
+        if [ "$XPLATFORM_ANDROID" != "yes" ]; then
+            canBuildWebKit="no"
+            canBuildQtXmlPatterns="no"
+        fi
 		;;
 	esac
 	;;

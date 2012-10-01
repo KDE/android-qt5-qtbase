@@ -4,6 +4,12 @@ CONFIG         -= qt
 CONFIG     -= app_bundle
 CONFIG += exceptions_off
 
+win32-g++|linux-mingw* {
+    CONFIG += static
+}
+
+win32-g++*:CONFIG += static_gcclibs ms_bitfields
+
 DEFINES	       += \
         QT_BOOTSTRAPPED \
         QT_LITE_UNICODE \
@@ -52,6 +58,8 @@ win32:LIBS += -luser32 -lole32
 
 mac {
     CONFIG -= incremental
+    CONFIG += x86
+    CONFIG += x86_64
     LIBS += -framework CoreServices
 }
 

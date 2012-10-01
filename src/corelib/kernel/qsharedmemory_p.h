@@ -69,8 +69,10 @@ namespace QSharedMemoryPrivate
 #include "qsystemsemaphore.h"
 #include "private/qobject_p.h"
 
-#if !defined(Q_OS_WIN) && !defined(Q_OS_LINUX_ANDROID)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_ANDROID)
 #  include <sys/sem.h>
+#elif defined(Q_OS_ANDROID)
+# include <semaphore.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -125,14 +127,20 @@ public:
     bool lockedByMe;
 #endif
 
+#ifndef Q_OS_ANDROID
     static int createUnixKeyFile(const QString &fileName);
+#endif
     static QString makePlatformSafeKey(const QString &key,
             const QString &prefix = QLatin1String("qipc_sharedmemory_"));
-#ifdef Q_OS_WIN
+
+#ifndef Q_OS_ANDROID
+# ifdef Q_OS_WIN
     Qt::HANDLE handle();
-#else
+# else
     key_t handle();
+# endif
 #endif
+
     bool initKey();
     bool cleanHandle();
     bool create(int size);
@@ -155,6 +163,9 @@ public:
 private:
 #ifdef Q_OS_WIN
     Qt::HANDLE hand;
+#elif defined(Q_OS_ANDROID)
+    int ashmem_fd;
+    int old_prot;
 #else
     key_t unix_key;
 #endif

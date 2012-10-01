@@ -93,7 +93,6 @@ defineTest(qtAddModule) {
            isEmpty(rpath): rpath = $$MODULE_LIBS
            QMAKE_RPATHDIR *= $$rpath
        }
-
        # Make sure we can link to uninstalled libraries
        unix:!mac:!isEmpty(QT.$${1}.libs) { # Use unmodified path, so /usr/lib also works
             for(rpl, QT.$${1}.rpath_link): \
@@ -146,7 +145,7 @@ defineTest(qtAddModules) {
     for(QTLIB, $$1) {
         QTLIBNAME = $$eval(QT.$${QTLIB}.name)
         isEmpty(QTLIBNAME) {
-            BAD_QT += $$QTLIB
+            !isEqual(QTLIB, android): BAD_QT += $$QTLIB
             next()
         }
 

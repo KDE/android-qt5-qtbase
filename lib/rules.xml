@@ -1,0 +1,92 @@
+<rules>
+    <platforms>
+        <libs>
+            <version value="4"/>
+            <version value="5"/>
+            <version value="6" symlink="5"/>
+            <version value="7" symlink="5"/>
+            <version value="8"/>
+            <version value="9"/>
+            <version value="10" symlink="9"/>
+            <version value="11" symlink="9"/>
+            <version value="12" symlink="9"/>
+            <version value="13" symlink="9"/>
+            <version value="14" symlink="9"/>
+            <version value="15" symlink="9"/>
+            <version value="16" symlink="9"/>
+        </libs>
+        <jars>
+            <version value="4"/>
+            <version value="5" symlink="7"/>
+            <version value="6" symlink="7"/>
+            <version value="7"/>
+            <version value="8"/>
+            <version value="9" symlink="14"/>
+            <version value="10" symlink="14"/>
+            <version value="11" symlink="14"/>
+            <version value="12" symlink="14"/>
+            <version value="13" symlink="14"/>
+            <version value="14"/>
+            <version value="15" symlink="14"/>
+            <version value="16" symlink="14"/>
+        </jars>
+    </platforms>
+    <dependencies> <!-- The order is very important -->
+        <lib name="QtCore">
+            <depends>
+                <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
+                <lib file="plugins/platforms/android/libandroid-%1.so"/>
+                <lib file="libs/libgnustl_shared.so"/>
+                <jar file="jar/QtIndustrius-%1.jar"/>
+            </depends>
+        </lib>
+
+        <lib name="QtOpenGL">
+            <depends>
+            <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
+                <lib file="plugins/platforms/android/libandroidGL-%1.so"/>
+            </depends>
+            <replaces>
+            <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
+                <lib file="plugins/platforms/android/libandroid-%1.so"/>
+            </replaces>
+        </lib>
+
+        <lib name="QtContacts">
+            <depends>
+                <lib file="plugins/contacts/libqtcontacts_android.so"/>
+            </depends>
+        </lib>
+
+        <lib name="QtFeedback">
+            <depends>
+                <lib file="plugins/feedback/libqtfeedback_android.so"/>
+            </depends>
+        </lib>
+
+        <lib name="QtSensors">
+            <depends>
+                <lib file="plugins/sensors/libqtsensors_android.so"/>
+            </depends>
+        </lib>
+
+        <lib name="QtMultimediaKit">
+            <depends>
+                <lib file="plugins/mediaservice/libqtmultimediakit_androidmedia.so"/>
+                <lib file="plugins/mediaservice/libqtmultimediakit_androidcam.so"/>
+            </depends>
+        </lib>
+
+        <lib name="Qt3D">
+            <depends>
+                <lib file="libs/QtOpenGL.so"/>
+            </depends>
+        </lib>
+        <lib name="Qt3DQuick">
+            <depends>
+                <lib file="libs/libQtOpenGL.so"/>
+                <lib file="libs/libQt3D.so"/>
+            </depends>
+        </lib>
+    </dependencies>
+</rules>

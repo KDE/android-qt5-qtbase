@@ -8,6 +8,7 @@ CONFIG -= qt
 CONFIG += exceptions_off
 !build_pass:contains(QT_CONFIG, build_all):CONFIG += release
 mac:CONFIG -= app_bundle incremental
+mac:CONFIG += x86 x86_64
 
 DEFINES += \
         QT_BOOTSTRAPPED \

@@ -1,5 +1,8 @@
 TEMPLATE = subdirs
 
+android : SUBDIRS += android
+#   else : SUBDIRS += minimal
+
 SUBDIRS += minimal
 
 contains(QT_CONFIG, xcb) {
@@ -28,3 +31,5 @@ contains(QT_CONFIG, kms) {
 }
 
 contains(QT_CONFIG, linuxfb): SUBDIRS += linuxfb
+
+

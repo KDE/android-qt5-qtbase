@@ -104,15 +104,12 @@ void QFbScreen::lower(QFbWindow *window)
 QWindow *QFbScreen::topLevelAt(const QPoint & p) const
 {
     Q_UNUSED(p);
-#if 0
     for (int i = 0; i < mWindowStack.size(); i++) {
         if (mWindowStack[i]->geometry().contains(p, false) &&
-            mWindowStack[i]->visible() &&
-            !mWindowStack[i]->widget()->isMinimized()) {
-            return mWindowStack[i]->widget();
+            mWindowStack[i]->window()->isVisible()) {
+            return mWindowStack[i]->window();
         }
     }
-#endif
     return 0;
 }
 

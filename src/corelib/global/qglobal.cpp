@@ -76,6 +76,10 @@
 #include <CoreServices/CoreServices.h>
 #endif
 
+#ifdef Q_OS_ANDROID
+#include <android/log.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 #if !QT_DEPRECATED_SINCE(5, 0)
@@ -2003,6 +2007,30 @@ namespace {
 }
 #endif
 
+#ifdef Q_OS_ANDROID
+static void android_default_handler(QtMsgType msgType, const char *buf)
+{
+    switch(msgType)
+    {
+    case QtDebugMsg:
+        __android_log_write(ANDROID_LOG_DEBUG,"Qt", buf);
+        break;
+    case QtWarningMsg:
+        __android_log_write(ANDROID_LOG_WARN,"Qt", buf);
+        break;
+    case QtCriticalMsg:
+        __android_log_write(ANDROID_LOG_ERROR,"Qt", buf);
+        break;
+    case QtFatalMsg:
+        __android_log_write(ANDROID_LOG_FATAL,"Qt", buf);
+        break;
+    default:
+        __android_log_write(ANDROID_LOG_VERBOSE,"Qt", buf);
+        break;
+    }
+}
+
+#endif //Q_OS_ANDROID
 QString qt_error_string(int errorCode)
 {
     const char *s = 0;
@@ -2088,6 +2116,8 @@ QByteArray qgetenv(const char *varName)
     Q_ASSERT(buffer.endsWith('\0'));
     buffer.chop(1);
     return buffer;
+#elif defined(__MINGW32__)
+    return QByteArray(::getenv(varName)).replace("\\","/");
 #else
     return QByteArray(::getenv(varName));
 #endif
@@ -2213,7 +2243,7 @@ Q_GLOBAL_STATIC(SeedStorage, randTLS)  // Thread Local Storage for seed value
 */
 void qsrand(uint seed)
 {
-#if defined(Q_OS_UNIX) && !defined(QT_NO_THREAD)
+#if defined(Q_OS_UNIX) && !defined(QT_NO_THREAD) && !defined(Q_OS_ANDROID)
     SeedStorage *seedStorage = randTLS();
     if (seedStorage) {
         SeedStorageType *pseed = seedStorage->localData();
