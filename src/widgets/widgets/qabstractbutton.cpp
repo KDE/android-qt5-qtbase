@@ -1117,6 +1117,11 @@ void QAbstractButton::mouseReleaseEvent(QMouseEvent *e)
         return;
     }
 
+#ifdef Q_OS_ANDROID
+    d->repeatTimer.stop();
+    d->click();
+    e->accept();
+#else
     if (hitButton(e->pos())) {
         d->repeatTimer.stop();
         d->click();
@@ -1125,6 +1130,7 @@ void QAbstractButton::mouseReleaseEvent(QMouseEvent *e)
         setDown(false);
         e->ignore();
     }
+#endif
 }
 
 /*! \reimp */
@@ -1136,6 +1142,12 @@ void QAbstractButton::mouseMoveEvent(QMouseEvent *e)
         return;
     }
 
+#ifdef Q_OS_ANDROID
+    if (d->down)
+        e->accept();
+    else
+        e->ignore();
+#else
     if (hitButton(e->pos()) != d->down) {
         setDown(!d->down);
         repaint(); //flush paint event before invoking potentially expensive operation
@@ -1148,6 +1160,7 @@ void QAbstractButton::mouseMoveEvent(QMouseEvent *e)
     } else if (!hitButton(e->pos())) {
         e->ignore();
     }
+#endif
 }
 
 /*! \reimp */
