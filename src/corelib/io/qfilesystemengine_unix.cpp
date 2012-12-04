@@ -167,7 +167,7 @@ QFileSystemEntry QFileSystemEngine::canonicalName(const QFileSystemEntry &entry,
     if (entry.isEmpty() || entry.isRoot())
         return entry;
 
-#if !defined(Q_OS_MAC) && !defined(Q_OS_QNX) && _POSIX_VERSION < 200809L
+#if !defined(Q_OS_MAC) && !defined(Q_OS_QNX) && !defined(Q_OS_ANDROID) && _POSIX_VERSION < 200809L
     // realpath(X,0) is not supported
     Q_UNUSED(data);
     return QFileSystemEntry(slowCanonicalized(absoluteName(entry).filePath()));
@@ -195,6 +195,7 @@ QFileSystemEntry QFileSystemEngine::canonicalName(const QFileSystemEntry &entry,
     ret = realpath(entry.nativeFilePath().constData(), (char*)0);
 #  else
     ret = (char*)malloc(PATH_MAX + 1);
+    memset(ret, 0, PATH_MAX);
     if (realpath(entry.nativeFilePath().constData(), (char*)ret) == 0) {
         const int savedErrno = errno; // errno is checked below, and free() might change it
         free(ret);
