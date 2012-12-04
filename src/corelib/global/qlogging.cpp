@@ -57,6 +57,10 @@
 #include <slog2.h>
 #endif
 
+#ifdef Q_OS_ANDROID
+#include <android/log.h>
+#endif
+
 #include <stdio.h>
 
 QT_BEGIN_NAMESPACE
@@ -789,6 +793,31 @@ Q_CORE_EXPORT QtMsgHandler qInstallMsgHandler(QtMsgHandler);
 static QtMsgHandler msgHandler = 0;                // pointer to debug handler (without context)
 static QtMessageHandler messageHandler = 0;         // pointer to debug handler (with context)
 
+#ifdef Q_OS_ANDROID
+static void android_default_handler(QtMsgType msgType, const char *buf)
+{
+    switch(msgType)
+    {
+    case QtDebugMsg:
+        __android_log_write(ANDROID_LOG_DEBUG,"Qt", buf);
+        break;
+    case QtWarningMsg:
+        __android_log_write(ANDROID_LOG_WARN,"Qt", buf);
+        break;
+    case QtCriticalMsg:
+        __android_log_write(ANDROID_LOG_ERROR,"Qt", buf);
+        break;
+    case QtFatalMsg:
+        __android_log_write(ANDROID_LOG_FATAL,"Qt", buf);
+        break;
+    default:
+        __android_log_write(ANDROID_LOG_VERBOSE,"Qt", buf);
+        break;
+    }
+}
+#endif //Q_OS_ANDROID
+
+
 /*!
     \internal
 */
@@ -809,6 +838,8 @@ static void qDefaultMessageHandler(QtMsgType type, const QMessageLogContext &con
 
 #if defined(QT_USE_SLOG2)
     slog2_default_handler(type, logMessage.toLocal8Bit().constData());
+#elif defined(Q_OS_ANDROID)
+    android_default_handler(type, logMessage.toLocal8Bit().constData());
 #else
     fprintf(stderr, "%s", logMessage.toLocal8Bit().constData());
     fflush(stderr);

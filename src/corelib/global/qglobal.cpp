@@ -2099,6 +2099,8 @@ QByteArray qgetenv(const char *varName)
     Q_ASSERT(buffer.endsWith('\0'));
     buffer.chop(1);
     return buffer;
+#elif defined(__MINGW32__)
+    return QByteArray(::getenv(varName)).replace("\\","/");
 #else
     return QByteArray(::getenv(varName));
 #endif
@@ -2224,7 +2226,7 @@ Q_GLOBAL_STATIC(SeedStorage, randTLS)  // Thread Local Storage for seed value
 */
 void qsrand(uint seed)
 {
-#if defined(Q_OS_UNIX) && !defined(QT_NO_THREAD)
+#if defined(Q_OS_UNIX) && !defined(QT_NO_THREAD) && !defined(Q_OS_ANDROID)
     SeedStorage *seedStorage = randTLS();
     if (seedStorage) {
         SeedStorageType *pseed = seedStorage->localData();
