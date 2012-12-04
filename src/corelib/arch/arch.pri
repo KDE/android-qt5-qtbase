@@ -24,3 +24,8 @@ unix {
     HEADERS += arch/qatomic_unix.h
     SOURCES += arch/qatomic_unix.cpp
 }
+
+android{
+    HEADERS += arch/qatomic_android.h
+#    SOURCES += arch/qatomic_android.cpp
+}

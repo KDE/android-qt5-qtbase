@@ -155,3 +155,7 @@ INCLUDEPATH += ../3rdparty/md5 \
 !macx-icc:!vxworks:unix:LIBS_PRIVATE += -lm
 
 TR_EXCLUDE += ../3rdparty/*
+contains(CONFIG, android){
+    SOURCES += tools/android/cpu-features.c
+    HEADERS += tools/android/cpu-features.h
+}
