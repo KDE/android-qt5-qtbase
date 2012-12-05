@@ -32,7 +32,7 @@
         </jars>
     </platforms>
     <dependencies> <!-- The order is very important -->
-        <lib name="QtCore">
+        <lib name="Qt5Core">
             <depends>
                 <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
                 <lib file="plugins/platforms/android/libandroid-%1.so"/>
@@ -41,7 +41,7 @@
             </depends>
         </lib>
 
-        <lib name="QtOpenGL">
+        <lib name="Qt5OpenGL">
             <depends>
             <!-- %1 will be replaced with device matched api level, e.g. if the device has api level 11 %1 will be replaced with 8 -->
                 <lib file="plugins/platforms/android/libandroidGL-%1.so"/>
@@ -52,37 +52,37 @@
             </replaces>
         </lib>
 
-        <lib name="QtContacts">
+        <lib name="Qt5Contacts">
             <depends>
                 <lib file="plugins/contacts/libqtcontacts_android.so"/>
             </depends>
         </lib>
 
-        <lib name="QtFeedback">
+        <lib name="Qt5Feedback">
             <depends>
                 <lib file="plugins/feedback/libqtfeedback_android.so"/>
             </depends>
         </lib>
 
-        <lib name="QtSensors">
+        <lib name="Qt5Sensors">
             <depends>
                 <lib file="plugins/sensors/libqtsensors_android.so"/>
             </depends>
         </lib>
 
-        <lib name="QtMultimediaKit">
+        <lib name="Qt5MultimediaKit">
             <depends>
                 <lib file="plugins/mediaservice/libqtmultimediakit_androidmedia.so"/>
                 <lib file="plugins/mediaservice/libqtmultimediakit_androidcam.so"/>
             </depends>
         </lib>
 
-        <lib name="Qt3D">
+        <lib name="Qt53D">
             <depends>
                 <lib file="libs/QtOpenGL.so"/>
             </depends>
         </lib>
-        <lib name="Qt3DQuick">
+        <lib name="Qt53DQuick">
             <depends>
                 <lib file="libs/libQtOpenGL.so"/>
                 <lib file="libs/libQt3D.so"/>

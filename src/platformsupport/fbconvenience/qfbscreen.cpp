@@ -45,6 +45,7 @@
 #include "qfbbackingstore_p.h"
 
 #include <QtGui/QPainter>
+#include <qpa/qwindowsysteminterface.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -121,6 +122,23 @@ void QFbScreen::setDirty(const QRect &rect)
     if (!mRedrawTimer.isActive()) {
         mRedrawTimer.start();
     }
+}
+
+void QFbScreen::setPhysicalSize(const QSize &size)
+{
+    mPhysicalSize = size;
+}
+
+void QFbScreen::setGeometry(const QRect &rect)
+{
+    delete mCompositePainter;
+    mCompositePainter = 0;
+    delete mScreenImage;
+    mGeometry = rect;
+    mScreenImage = new QImage(mGeometry.size(), mFormat);
+    invalidateRectCache();
+    QWindowSystemInterface::handleScreenGeometryChange(QPlatformScreen::screen(), geometry());
+    QWindowSystemInterface::handleScreenAvailableGeometryChange(QPlatformScreen::screen(), availableGeometry());
 }
 
 void QFbScreen::generateRects()
