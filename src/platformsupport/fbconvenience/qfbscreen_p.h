@@ -71,7 +71,11 @@ public:
     virtual void removeWindow(QFbWindow *window);
     virtual void raise(QFbWindow *window);
     virtual void lower(QFbWindow *window);
+
+public slots:
     virtual void setDirty(const QRect &rect);
+    void setPhysicalSize(const QSize & size);
+    void setGeometry(const QRect &rect);
 
 protected slots:
     virtual QRegion doRedraw();
