@@ -52,10 +52,6 @@ QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
     mDepth = 16;
     mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
     mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    mGeometry.setTop(0);
-    mGeometry.setLeft(0);
-    mGeometry.setHeight(QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mGeometry.setWidth(QAndroidPlatformIntegration::m_defaultGeometryWidth);
     initializeCompositor();
     qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
 }
