@@ -64,6 +64,7 @@ public:
     virtual QImage::Format format() const { return mFormat; }
     virtual QSizeF physicalSize() const { return mPhysicalSize; }
 
+    QWindow * topWindow();
     virtual QWindow *topLevelAt(const QPoint & p) const;
 
     // compositor api
