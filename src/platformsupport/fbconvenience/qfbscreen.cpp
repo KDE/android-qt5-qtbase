@@ -73,6 +73,7 @@ void QFbScreen::addWindow(QFbWindow *window)
     mWindowStack.prepend(window);
     invalidateRectCache();
     setDirty(window->geometry());
+    QWindowSystemInterface::handleWindowActivated(topWindow());
 }
 
 void QFbScreen::removeWindow(QFbWindow *window)
@@ -80,6 +81,7 @@ void QFbScreen::removeWindow(QFbWindow *window)
     mWindowStack.removeOne(window);
     invalidateRectCache();
     setDirty(window->geometry());
+    QWindowSystemInterface::handleWindowActivated(topWindow());
 }
 
 void QFbScreen::raise(QFbWindow *window)
@@ -90,6 +92,7 @@ void QFbScreen::raise(QFbWindow *window)
     mWindowStack.move(index, 0);
     invalidateRectCache();
     setDirty(window->geometry());
+    QWindowSystemInterface::handleWindowActivated(topWindow());
 }
 
 void QFbScreen::lower(QFbWindow *window)
@@ -100,15 +103,23 @@ void QFbScreen::lower(QFbWindow *window)
     mWindowStack.move(index, mWindowStack.size() - 1);
     invalidateRectCache();
     setDirty(window->geometry());
+    QWindowSystemInterface::handleWindowActivated(topWindow());
+}
+
+QWindow * QFbScreen::topWindow()
+{
+    foreach (QFbWindow * fbw, mWindowStack )
+        if ( fbw->window()->windowType()==Qt::Window || fbw->window()->windowType()==Qt::Dialog )
+            return fbw->window();
+    return 0;
 }
 
 QWindow *QFbScreen::topLevelAt(const QPoint & p) const
 {
-    Q_UNUSED(p);
-    for (int i = 0; i < mWindowStack.size(); i++) {
-        if (mWindowStack[i]->geometry().contains(p, false) &&
-            mWindowStack[i]->window()->isVisible()) {
-            return mWindowStack[i]->window();
+    foreach (QFbWindow * fbw, mWindowStack ) {
+        if (fbw->geometry().contains(p, false) &&
+            fbw->window()->isVisible()) {
+            return fbw->window();
         }
     }
     return 0;
