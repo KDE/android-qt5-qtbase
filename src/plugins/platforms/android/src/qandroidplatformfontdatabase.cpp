@@ -70,7 +70,7 @@ QStringList QAndroidPlatformFontDatabase::fallbacksForFamily(const QString famil
     Q_UNUSED(style);
     Q_UNUSED(script);
     if (styleHint == QFont::Monospace)
-            return QStringList() << "Droid Sans Mono" << "Droid Sans" << "Droid Sans Fallback";
+            return QString(qgetenv("QT_ANDROID_FONTS_MONOSPACE")).split(";");
 
-    return QStringList() << "Droid Sans" << "Droid Sans Fallback";
+    return QString(qgetenv("QT_ANDROID_FONTS")).split(";");
 }
