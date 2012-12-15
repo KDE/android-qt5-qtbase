@@ -150,6 +150,7 @@ void QFbScreen::setGeometry(const QRect &rect)
     invalidateRectCache();
     QWindowSystemInterface::handleScreenGeometryChange(QPlatformScreen::screen(), geometry());
     QWindowSystemInterface::handleScreenAvailableGeometryChange(QPlatformScreen::screen(), availableGeometry());
+    resizeMaximizedWindows();
 }
 
 void QFbScreen::generateRects()
