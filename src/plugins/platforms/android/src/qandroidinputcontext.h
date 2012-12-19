@@ -44,6 +44,10 @@
 
 #include <qpa/qplatforminputcontext.h>
 #include <jni.h>
+#include <qevent.h>
+
+QT_BEGIN_HEADER
+QT_BEGIN_NAMESPACE
 
 class QAndroidInputContext : public QPlatformInputContext
 {
@@ -73,54 +77,54 @@ public:
     };
 
 public:
-    explicit QAndroidInputContext(QObject *parent = 0);
+    QAndroidInputContext();
     ~QAndroidInputContext();
-    virtual bool isValid() const;
+    virtual bool isValid() const {return true;}
 
     virtual void reset();
     virtual void commit();
-    virtual void update(Qt::InputMethodQueries);
-    virtual void invokeAction(QInputMethod::Action, int cursorPosition);
+    virtual void update(Qt::InputMethodQueries queries);
+    virtual void invokeAction(QInputMethod::Action action, int cursorPosition);
+    virtual QRectF keyboardRect() const;
+    virtual bool isAnimating() const;
     virtual void showInputPanel();
     virtual void hideInputPanel();
     virtual bool isInputPanelVisible() const;
-    virtual QLocale locale() const;
-    virtual Qt::LayoutDirection inputDirection() const;
 
-    virtual void setFocusObject(QObject *object);
-//    virtual QString identifierName ();
-//    virtual bool isComposing () const;
-//    virtual QString language ();
-//    void clear();
+    bool isComposing () const;
+    void clear();
 
-//    virtual void setFocusWidget( QWidget *w );
-//    virtual bool filterEvent ( const QEvent * event );
+    //---------------//
+    jboolean commitText(const QString & text, jint newCursorPosition);
+    jboolean deleteSurroundingText(jint leftLength, jint rightLength);
+    jboolean finishComposingText();
+    jint getCursorCapsMode(jint reqModes);
+    const ExtractedText & getExtractedText(jint hintMaxChars, jint hintMaxLines, jint flags);
+    QString getSelectedText(jint flags);
+    QString getTextAfterCursor(jint length, jint flags);
+    QString getTextBeforeCursor(jint length, jint flags);
+    jboolean setComposingText(const QString & text, jint newCursorPosition);
+    jboolean setSelection(jint start, jint end);
+    jboolean selectAll();
+    jboolean cut();
+    jboolean copy();
+    jboolean copyURL();
+    jboolean paste();
 
-//    //---------------//
-//    jboolean commitText(const QString & text, jint newCursorPosition);
-//    jboolean deleteSurroundingText(jint leftLength, jint rightLength);
-//    jboolean finishComposingText();
-//    jint getCursorCapsMode(jint reqModes);
-//    const ExtractedText & getExtractedText(jint hintMaxChars, jint hintMaxLines, jint flags);
-//    QString getSelectedText(jint flags);
-//    QString getTextAfterCursor(jint length, jint flags);
-//    QString getTextBeforeCursor(jint length, jint flags);
-//    jboolean setComposingText(const QString & text, jint newCursorPosition);
-//    jboolean setSelection(jint start, jint end);
-//    jboolean selectAll();
-//    jboolean cut();
-//    jboolean copy();
-//    jboolean copyURL();
-//    jboolean paste();
+private:
+    QSharedPointer<QInputMethodQueryEvent> focusObjectInputMethodQuery(Qt::InputMethodQueries queries=Qt::ImQueryAll);
+    void sendInputMethodEvent(QInputMethodEvent *event);
 
-//signals:
+private slots:
+    virtual void sendEvent(QObject *receiver, QInputMethodEvent * event);
+    virtual void sendEvent(QObject *receiver, QInputMethodQueryEvent * event);
 
-//private slots:
-//    virtual void sendEvent(const QInputMethodEvent &event);
-
-//private:
-//    ExtractedText m_extractedText;
-//    QString m_composingText;
+private:
+    ExtractedText m_extractedText;
+    QString m_composingText;
 };
+
+QT_END_NAMESPACE
+QT_END_HEADER
 
 #endif // ANDROIDINPUTCONTEXT_H

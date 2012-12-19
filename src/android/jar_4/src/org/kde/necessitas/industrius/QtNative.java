@@ -353,6 +353,38 @@ public class QtNative
         });
     }
 
+    private static boolean isSoftwareKeyboardVisible()
+    {
+        Semaphore semaphore = new Semaphore(1);
+        Boolean ret = false;
+        class RunnableRes implements Runnable
+        {
+            @SuppressWarnings("unused")
+            Boolean returnValue = null;
+            @SuppressWarnings("unused")
+            Semaphore semaphore = null;
+            RunnableRes(Boolean ret, Semaphore sem)
+            {
+                semaphore = sem;
+                returnValue = ret;
+            }
+            @Override
+            public void run() {
+                returnValue = m_activityDelegate.isSoftwareKeyboardVisible();
+                semaphore.release();
+            }
+        }
+
+        runAction(new RunnableRes(ret, semaphore));
+        try
+        {
+            semaphore.acquire();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
     private static void setFullScreen(final boolean fullScreen)
     {
         runAction(new Runnable() {

@@ -44,6 +44,13 @@
 #include "qandroidinputcontext.h"
 #include "androidjnimain.h"
 #include <QDebug>
+#include <qevent.h>
+#include <qguiapplication.h>
+#include <qsharedpointer.h>
+#include <qthread.h>
+
+QT_BEGIN_HEADER
+QT_BEGIN_NAMESPACE
 
 static QAndroidInputContext * m_androidInputContext = 0;
 static char const * const QtNativeInputConnectionClassName = "org/kde/necessitas/industrius/QtNativeInputConnection";
@@ -65,37 +72,29 @@ static jboolean commitText(JNIEnv *env, jobject /*thiz*/, jstring text, jint new
     const jchar * jstr = env->GetStringChars(text, &isCopy);
     QString str((const QChar*)jstr,  env->GetStringLength(text));
     env->ReleaseStringChars(text, jstr);
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->commitText( str
-//                                            , newCursorPosition );
+    return m_androidInputContext->commitText( str
+                                            , newCursorPosition );
 }
 
 static jboolean deleteSurroundingText(JNIEnv */*env*/, jobject /*thiz*/, jint leftLength, jint rightLength)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->deleteSurroundingText(leftLength, rightLength);
+    return m_androidInputContext->deleteSurroundingText(leftLength, rightLength);
 }
 
 static jboolean finishComposingText(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->finishComposingText();
+    return m_androidInputContext->finishComposingText();
 }
 
 static jint getCursorCapsMode(JNIEnv */*env*/, jobject /*thiz*/, jint reqModes)
 {
     if (!m_androidInputContext)
         return 0;
-    return 0;
-//FIXME
-//    return m_androidInputContext->getCursorCapsMode(reqModes);
+    return m_androidInputContext->getCursorCapsMode(reqModes);
 }
 
 static jobject getExtractedText(JNIEnv *env, jobject /*thiz*/, int hintMaxChars, int hintMaxLines, jint flags)
@@ -103,114 +102,92 @@ static jobject getExtractedText(JNIEnv *env, jobject /*thiz*/, int hintMaxChars,
     if (!m_androidInputContext)
         return 0;
 
-    return 0;
-//FIXME
-//    const QAndroidInputContext::ExtractedText & extractedText=m_androidInputContext->getExtractedText(hintMaxChars, hintMaxLines, flags);
-//    jobject object = env->NewObject(m_extractedTextClass, m_classConstructorMethodID);
-//    env->SetIntField(object, m_partialStartOffsetFieldID, extractedText.partialStartOffset);
-//    env->SetIntField(object, m_partialEndOffsetFieldID, extractedText.partialEndOffset);
-//    env->SetIntField(object, m_selectionStartFieldID, extractedText.selectionStart);
-//    env->SetIntField(object, m_selectionEndFieldID, extractedText.selectionEnd);
-//    env->SetIntField(object, m_startOffsetFieldID, extractedText.startOffset);
-//    env->SetObjectField(object, m_textFieldID, env->NewString((jchar*)extractedText.text.constData(), (jsize)extractedText.text.length()));
-//    return object;
+    const QAndroidInputContext::ExtractedText & extractedText=m_androidInputContext->getExtractedText(hintMaxChars, hintMaxLines, flags);
+    jobject object = env->NewObject(m_extractedTextClass, m_classConstructorMethodID);
+    env->SetIntField(object, m_partialStartOffsetFieldID, extractedText.partialStartOffset);
+    env->SetIntField(object, m_partialEndOffsetFieldID, extractedText.partialEndOffset);
+    env->SetIntField(object, m_selectionStartFieldID, extractedText.selectionStart);
+    env->SetIntField(object, m_selectionEndFieldID, extractedText.selectionEnd);
+    env->SetIntField(object, m_startOffsetFieldID, extractedText.startOffset);
+    env->SetObjectField(object, m_textFieldID, env->NewString((jchar*)extractedText.text.constData(), (jsize)extractedText.text.length()));
+    return object;
 }
 
 static jstring getSelectedText(JNIEnv * env, jobject /*thiz*/, jint flags)
 {
     if (!m_androidInputContext)
         return 0;
-    return 0;
-//FIXME
-//    const QString & text = m_androidInputContext->getSelectedText(flags);
-//    return env->NewString((jchar*)text.constData(), (jsize)text.length());
+    const QString & text = m_androidInputContext->getSelectedText(flags);
+    return env->NewString((jchar*)text.constData(), (jsize)text.length());
 }
 
 static jstring getTextAfterCursor(JNIEnv * env, jobject /*thiz*/, jint length, jint flags)
 {
     if (!m_androidInputContext)
         return 0;
-    return 0;
-//FIXME
-//    const QString & text = m_androidInputContext->getTextAfterCursor(length, flags);
-//    return env->NewString((jchar*)text.constData(), (jsize)text.length());
+    const QString & text = m_androidInputContext->getTextAfterCursor(length, flags);
+    return env->NewString((jchar*)text.constData(), (jsize)text.length());
 }
 
 static jstring getTextBeforeCursor(JNIEnv * env, jobject /*thiz*/, jint length, jint flags)
 {
     if (!m_androidInputContext)
         return 0;
-    return 0;
-//FIXME
-//    const QString & text = m_androidInputContext->getTextBeforeCursor(length, flags);
-//    return env->NewString((jchar*)text.constData(), (jsize)text.length());
+    const QString & text = m_androidInputContext->getTextBeforeCursor(length, flags);
+    return env->NewString((jchar*)text.constData(), (jsize)text.length());
 }
 
 static jboolean setComposingText(JNIEnv * env, jobject /*thiz*/, jstring text, jint newCursorPosition)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    jboolean isCopy;
-//    const jchar * jstr = env->GetStringChars(text, &isCopy);
-//    QString str((const QChar*)jstr,  env->GetStringLength(text));
-//    env->ReleaseStringChars(text, jstr);
-//    return m_androidInputContext->setComposingText(str, newCursorPosition);
+    jboolean isCopy;
+    const jchar * jstr = env->GetStringChars(text, &isCopy);
+    QString str((const QChar*)jstr,  env->GetStringLength(text));
+    env->ReleaseStringChars(text, jstr);
+    return m_androidInputContext->setComposingText(str, newCursorPosition);
 }
 
 static jboolean setSelection(JNIEnv */*env*/, jobject /*thiz*/, jint start, jint end)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->setSelection(start, end);
+    return m_androidInputContext->setSelection(start, end);
 }
 
 static jboolean selectAll(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->selectAll();
+    return m_androidInputContext->selectAll();
 }
 
 static jboolean cut(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->cut();
+    return m_androidInputContext->cut();
 }
 
 static jboolean copy(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->copy();
+    return m_androidInputContext->copy();
 }
 
 static jboolean copyURL(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->copyURL();
+    return m_androidInputContext->copyURL();
 }
 
 static jboolean paste(JNIEnv */*env*/, jobject /*thiz*/)
 {
     if (!m_androidInputContext)
         return JNI_FALSE;
-    return JNI_FALSE;
-//FIXME
-//    return m_androidInputContext->paste();
+    return m_androidInputContext->paste();
 }
 
 
@@ -233,8 +210,7 @@ static JNINativeMethod methods[] = {
 };
 
 
-QAndroidInputContext::QAndroidInputContext(QObject *parent)/* :
-    QInputContext(parent)*/
+QAndroidInputContext::QAndroidInputContext():QPlatformInputContext()
 {
     JNIEnv * env = 0;
     if (QtAndroid::javaVM()->AttachCurrentThread(&env, NULL)<0)
@@ -310,8 +286,8 @@ QAndroidInputContext::QAndroidInputContext(QObject *parent)/* :
         qCritical()<<"Can't find field text";
         return;
     }
-//FIXME
-//    qRegisterMetaType<QInputMethodEvent>("QInputMethodEvent");
+    qRegisterMetaType<QInputMethodEvent*>("QInputMethodEvent*");
+    qRegisterMetaType<QInputMethodQueryEvent*>("QInputMethodQueryEvent*");
     m_androidInputContext = this;
 }
 
@@ -327,273 +303,268 @@ QAndroidInputContext::~QAndroidInputContext()
     m_textFieldID=0;
 }
 
-bool QAndroidInputContext::isValid() const
-{
-    return m_androidInputContext;
-}
-
 void QAndroidInputContext::reset()
 {
-//FIXME
-//    clear();
-//    if (focusWidget())
-//        QtAndroid::resetSoftwareKeyboard();
-//    else
-//        QtAndroid::hideSoftwareKeyboard();
+    clear();
+    if (qGuiApp->focusObject())
+        QtAndroid::resetSoftwareKeyboard();
+    else
+        QtAndroid::hideSoftwareKeyboard();
 }
 
 void QAndroidInputContext::commit()
 {
-    //TODO
+    finishComposingText();
 }
 
-void QAndroidInputContext::update(Qt::InputMethodQueries)
+void QAndroidInputContext::update(Qt::InputMethodQueries queries)
 {
-    reset();
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery(queries);
+    if (query.isNull())
+        return;
+#warning TODO extract the needed data from query
 }
 
-void QAndroidInputContext::invokeAction(QInputMethod::Action, int cursorPosition)
+void QAndroidInputContext::invokeAction(QInputMethod::Action action, int cursorPosition)
 {
+#warning TODO Handle at least QInputMethod::ContextMenu action
+    Q_UNUSED(action)
+    Q_UNUSED(cursorPosition)
+    QPlatformInputContext::invokeAction(action, cursorPosition);
+}
+
+QRectF QAndroidInputContext::keyboardRect() const
+{
+    return QPlatformInputContext::keyboardRect();
+}
+
+bool QAndroidInputContext::isAnimating() const
+{
+    return false;
 }
 
 void QAndroidInputContext::showInputPanel()
 {
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return;
+#warning TODO find a way to get focusObject screen rect !!!
+    QRect rect(0,0,100,50);
+    QtAndroid::showSoftwareKeyboard(rect.left(), rect.top(), rect.width(), rect.height(), query->value(Qt::ImHints).toUInt());
 }
 
 void QAndroidInputContext::hideInputPanel()
 {
+    QtAndroid::hideSoftwareKeyboard();
 }
 
 bool QAndroidInputContext::isInputPanelVisible() const
 {
+    return QtAndroid::isSoftwareKeyboardVisible();
 }
 
-QLocale QAndroidInputContext::locale() const
+bool QAndroidInputContext::isComposing() const
 {
-    return QLocale();
+    return m_composingText.length();
 }
 
-Qt::LayoutDirection QAndroidInputContext::inputDirection() const
+void QAndroidInputContext::clear()
 {
-    return Qt::LayoutDirectionAuto;
+    m_composingText.clear();
+    m_extractedText.clear();
 }
 
-void QAndroidInputContext::setFocusObject(QObject *object)
+void QAndroidInputContext::sendEvent(QObject *receiver, QInputMethodEvent *event)
 {
-    Q_UNUSED(object);
+    QCoreApplication::sendEvent(receiver, event);
 }
 
-//QString QAndroidInputContext::identifierName()
-//{
-//    return "QAndroidInputContext";
-//}
+void QAndroidInputContext::sendEvent(QObject *receiver, QInputMethodQueryEvent *event)
+{
+    QCoreApplication::sendEvent(receiver, event);
+}
 
-//bool QAndroidInputContext::isComposing() const
-//{
-//    return m_composingText.length();
-//}
+jboolean QAndroidInputContext::commitText(const QString &text, jint /*newCursorPosition*/)
+{
+    m_composingText = text;
+    return finishComposingText();
+}
 
-//QString QAndroidInputContext::language()
-//{
-//    return qgetenv("LANG");
-//}
+jboolean QAndroidInputContext::deleteSurroundingText(jint leftLength, jint rightLength)
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return JNI_TRUE;
+    const int cursorPos= query->value(Qt::ImCursorPosition).toInt();
+    setSelection(cursorPos-leftLength, cursorPos+rightLength);
+    m_composingText.clear();
+    finishComposingText();
+    return JNI_TRUE;
+}
 
-//void QAndroidInputContext::clear()
-//{
-//    m_composingText.clear();
-//    m_extractedText.clear();
-//}
+jboolean QAndroidInputContext::finishComposingText()
+{
+    QInputMethodEvent event;
+    event.setCommitString(m_composingText);
+    sendInputMethodEvent(&event);
+    clear();
+    return JNI_TRUE;
+}
 
+jint QAndroidInputContext::getCursorCapsMode(jint /*reqModes*/)
+{
+    jint res = 0;
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return res;
 
-//void QAndroidInputContext::setFocusWidget( QWidget *w )
-//{
-//    QInputContext::setFocusWidget( w );
-//    if (!w)
-//        reset();
-//}
+    const uint qtInputMethodHints = query->value(Qt::ImHints).toUInt();
 
-//bool QAndroidInputContext::filterEvent( const QEvent * event )
-//{
-//    if (event->type() == QEvent::RequestSoftwareInputPanel)
-//    {
-//        QWidget * w = focusWidget();
-//        if (!w)
-//            return QInputContext::filterEvent(event);
-//        QRect wrect(w->mapToGlobal(w->rect().topLeft()),w->rect().size());
-//        QtAndroid::showSoftwareKeyboard(wrect.left(), wrect.top(), wrect.width(), wrect.height(), w->inputMethodHints());
-//        return true;
-//    }
-//    else if (event->type() == QEvent::CloseSoftwareInputPanel)
-//    {
-//        QtAndroid::hideSoftwareKeyboard();
-//        return true;
-//    } else if ( (event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease) && isComposing() )
-//    {
-//        finishComposingText();
-//    }
-//    return QInputContext::filterEvent(event);
-//}
+    if ( qtInputMethodHints & Qt::ImhPreferUppercase )
+        res = CAP_MODE_SENTENCES;
 
-//void QAndroidInputContext::sendEvent(const QInputMethodEvent &event)
-//{
-//    QInputContext::sendEvent(event);
-//}
+    if ( qtInputMethodHints & Qt::ImhUppercaseOnly)
+        res = CAP_MODE_CHARACTERS;
 
-//jboolean QAndroidInputContext::commitText(const QString &text, jint /*newCursorPosition*/)
-//{
-//    m_composingText = text;
-//    return finishComposingText();
-//}
+    return res;
+}
 
-//jboolean QAndroidInputContext::deleteSurroundingText(jint leftLength, jint rightLength)
-//{
-//    QWidget * w = focusWidget();
-//    if (!w)
-//        return JNI_TRUE;
-//    const int cursorPos= w->inputMethodQuery(Qt::ImCursorPosition).toInt();
-//    setSelection(cursorPos-leftLength, cursorPos+rightLength);
-//    m_composingText.clear();
-//    finishComposingText();
-//    return JNI_TRUE;
-//}
+const QAndroidInputContext::ExtractedText & QAndroidInputContext::getExtractedText(jint hintMaxChars, jint /*hintMaxLines*/, jint /*flags*/)
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return m_extractedText;
+    if (hintMaxChars)
+        m_extractedText.text = query->value(Qt::ImSurroundingText).toString().right(hintMaxChars);
+    m_extractedText.startOffset = query->value(Qt::ImCursorPosition).toInt();
+    const QString & selection = query->value(Qt::ImCurrentSelection).toString();
+    const int selLen=selection.length();
+    if (selLen)
+    {
+        m_extractedText.selectionStart = query->value(Qt::ImAnchorPosition).toInt();
+        m_extractedText.selectionEnd = m_extractedText.startOffset;
+    }
+    return m_extractedText;
+}
 
-//jboolean QAndroidInputContext::finishComposingText()
-//{
-//    if (!focusWidget())
-//        return JNI_TRUE;
-//    QInputMethodEvent event;
-//    event.setCommitString(m_composingText);
-//    QMetaObject::invokeMethod(this, "sendEvent", Qt::AutoConnection, Q_ARG(QInputMethodEvent, event));
-//    clear();
-//    return JNI_TRUE;
-//}
+QString QAndroidInputContext::getSelectedText(jint /*flags*/)
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return QString();
+    return query->value(Qt::ImCurrentSelection).toString();
+}
 
-//jint QAndroidInputContext::getCursorCapsMode(jint /*reqModes*/)
-//{
-//    QWidget * w = focusWidget();
-//    jint res = 0;
-//    if (!w)
-//        return res;
+QString QAndroidInputContext::getTextAfterCursor(jint length, jint /*flags*/)
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return QString();
+    QString text = query->value(Qt::ImSurroundingText).toString();
+    if (!text.length())
+        return text;
+    int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+    return text.mid(cursorPos, length);
+}
 
-//    const int qtInputMethodHints = w->inputMethodHints();
+QString QAndroidInputContext::getTextBeforeCursor(jint length, jint /*flags*/)
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return QString();
+    QString text = query->value(Qt::ImSurroundingText).toString();
+    if (!text.length())
+        return text;
+    int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+    const int wordLeftPos=cursorPos-length;
+    return text.mid(wordLeftPos>0?wordLeftPos:0, cursorPos);
+}
 
-//    if ( qtInputMethodHints & Qt::ImhPreferUppercase )
-//        res = CAP_MODE_SENTENCES;
+jboolean QAndroidInputContext::setComposingText(const QString & text, jint newCursorPosition)
+{
+    QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
+    if (query.isNull())
+        return JNI_FALSE;
+    newCursorPosition+=text.length()-1;
+    int cursorPos = query->value(Qt::ImCursorPosition).toInt();
+    m_composingText=text;
+    QList<QInputMethodEvent::Attribute> attributes;
+    attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Cursor,
+                                                cursorPos+newCursorPosition,
+                                                1,
+                                                QVariant()));
+    QInputMethodEvent event(m_composingText, attributes);
+    sendInputMethodEvent(&event);
+    return JNI_TRUE;
+}
 
-//    if ( qtInputMethodHints & Qt::ImhUppercaseOnly)
-//        res = CAP_MODE_CHARACTERS;
+jboolean QAndroidInputContext::setSelection(jint start, jint end)
+{
+    QList<QInputMethodEvent::Attribute> attributes;
+    attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Selection,
+                                                start,
+                                                end-start,
+                                                QVariant()));
+    QInputMethodEvent event(QString(), attributes);
+    sendInputMethodEvent(&event);
+    return JNI_TRUE;
+}
 
-//    return res;
-//}
+jboolean QAndroidInputContext::selectAll()
+{
+#warning TODO
+    return JNI_FALSE;
+}
 
-//const QAndroidInputContext::ExtractedText & QAndroidInputContext::getExtractedText(jint /*hintMaxChars*/, jint /*hintMaxLines*/, jint /*flags*/)
-//{
-//    QWidget * w = focusWidget();
-//    if (!w)
-//        return m_extractedText;
-//    m_extractedText.text = w->inputMethodQuery(Qt::ImSurroundingText).toString();
-//    if (!m_extractedText.text.length())
-//        return m_extractedText;
-//    m_extractedText.startOffset = w->inputMethodQuery(Qt::ImCursorPosition).toInt();
-//    const QString & selection = w->inputMethodQuery(Qt::ImCurrentSelection).toString();
-//    const int selLen=selection.length();
-//    if (selLen)
-//    {
-//        m_extractedText.selectionStart = w->inputMethodQuery(Qt::ImAnchorPosition).toInt();
-//        m_extractedText.selectionEnd = m_extractedText.startOffset;
-//    }
-//    return m_extractedText;
-//}
+jboolean QAndroidInputContext::cut()
+{
+#warning TODO
+    return JNI_FALSE;
+}
 
-//QString QAndroidInputContext::getSelectedText(jint /*flags*/)
-//{
-//    QWidget * w = focusWidget();
-//    if (!w)
-//        return QString();
-//    return w->inputMethodQuery(Qt::ImCurrentSelection).toString();
-//}
+jboolean QAndroidInputContext::copy()
+{
+#warning TODO
+    return JNI_FALSE;
+}
 
-//QString QAndroidInputContext::getTextAfterCursor(jint /*length*/, jint /*flags*/)
-//{
-//    QWidget * w = focusWidget();
-//    if (!w)
-//        return QString();
-//    QString text = w->inputMethodQuery(Qt::ImSurroundingText).toString();
-//    if (!text.length())
-//        return text;
-//    int cursorPos = w->inputMethodQuery(Qt::ImCursorPosition).toInt();
-//    return text.mid(cursorPos);
-//}
+jboolean QAndroidInputContext::copyURL()
+{
+#warning TODO
+    return JNI_FALSE;
+}
 
-//QString QAndroidInputContext::getTextBeforeCursor(jint /*length*/, jint /*flags*/)
-//{
-//    QWidget * w = focusWidget();
-//    if (!w)
-//        return QString();
-//    QString text = w->inputMethodQuery(Qt::ImSurroundingText).toString();
-//    if (!text.length())
-//        return text;
-//    int cursorPos = w->inputMethodQuery(Qt::ImCursorPosition).toInt();
-//    return text.left(cursorPos+1);
-//}
+jboolean QAndroidInputContext::paste()
+{
+#warning TODO
+    return JNI_FALSE;
+}
 
-//jboolean QAndroidInputContext::setComposingText(const QString & text, jint newCursorPosition)
-//{
-//    QWidget * w = focusWidget();
-//    if (!w)
-//        return JNI_FALSE;
-//    newCursorPosition+=text.length()-1;
-//    int cursorPos = w->inputMethodQuery(Qt::ImCursorPosition).toInt();
-//    m_composingText=text;
-//    QList<QInputMethodEvent::Attribute> attributes;
-//    attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Cursor,
-//                                                cursorPos+newCursorPosition,
-//                                                1,
-//                                                QVariant()));
-//    QInputMethodEvent event(m_composingText, attributes);
-//    QMetaObject::invokeMethod(this, "sendEvent", Qt::AutoConnection, Q_ARG(QInputMethodEvent, event));
-//    return JNI_TRUE;
-//}
+QSharedPointer<QInputMethodQueryEvent> QAndroidInputContext::focusObjectInputMethodQuery(Qt::InputMethodQueries queries)
+{
+#warning TODO make qGuiApp->focusObject() thread safe !!!
+    QObject * focusObject = qGuiApp->focusObject();
+    if (!focusObject)
+        return QSharedPointer<QInputMethodQueryEvent>();
+    QSharedPointer<QInputMethodQueryEvent> ret = QSharedPointer<QInputMethodQueryEvent>(new QInputMethodQueryEvent(queries));
+    if (qGuiApp->thread()==QThread::currentThread())
+        QCoreApplication::sendEvent(focusObject, ret.data());
+    else
+        QMetaObject::invokeMethod(this, "sendEvent", Qt::BlockingQueuedConnection, Q_ARG(QObject*, focusObject), Q_ARG(QInputMethodQueryEvent*, ret.data()));
+    return ret;
+}
 
-//jboolean QAndroidInputContext::setSelection(jint start, jint end)
-//{
-//    finishComposingText();
-//    QList<QInputMethodEvent::Attribute> attributes;
-//    attributes.append(QInputMethodEvent::Attribute(QInputMethodEvent::Selection,
-//                                                end,
-//                                                start,
-//                                                QVariant()));
-//    QInputMethodEvent event(QString(), attributes);
-//    QMetaObject::invokeMethod(this, "sendEvent", Qt::AutoConnection, Q_ARG(QInputMethodEvent, event));
-//    return JNI_TRUE;
-//}
+void QAndroidInputContext::sendInputMethodEvent(QInputMethodEvent *event)
+{
+#warning TODO make qGuiApp->focusObject() thread safe !!!
+    QObject * focusObject = qGuiApp->focusObject();
+    if (!focusObject)
+        return;
+    if (qGuiApp->thread()==QThread::currentThread())
+        QCoreApplication::sendEvent(focusObject, event);
+    else
+        QMetaObject::invokeMethod(this, "sendEvent", Qt::BlockingQueuedConnection, Q_ARG(QObject*, focusObject), Q_ARG(QInputMethodEvent*, event));
+}
 
-//jboolean QAndroidInputContext::selectAll()
-//{
-//#warning TODO
-//    return JNI_TRUE;
-//}
-
-//jboolean QAndroidInputContext::cut()
-//{
-//#warning TODO
-//    return JNI_TRUE;
-//}
-
-//jboolean QAndroidInputContext::copy()
-//{
-//#warning TODO
-//    return JNI_TRUE;
-//}
-
-//jboolean QAndroidInputContext::copyURL()
-//{
-//#warning TODO
-//    return JNI_TRUE;
-//}
-
-//jboolean QAndroidInputContext::paste()
-//{
-//#warning TODO
-//    return JNI_TRUE;
-//}
+QT_END_NAMESPACE
+QT_END_HEADER

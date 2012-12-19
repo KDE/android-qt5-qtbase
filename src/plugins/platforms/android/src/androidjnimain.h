@@ -75,6 +75,7 @@ namespace QtAndroid
     void showSoftwareKeyboard(int top, int left, int width, int height, int inputHints);
     void resetSoftwareKeyboard();
     void hideSoftwareKeyboard();
+    bool isSoftwareKeyboardVisible();
     // Software keyboard support
 
     // Clipboard support

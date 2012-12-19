@@ -127,6 +127,7 @@ static volatile bool m_pauseApplication;
 static jmethodID m_showSoftwareKeyboardMethodID=0;
 static jmethodID m_resetSoftwareKeyboardMethodID=0;
 static jmethodID m_hideSoftwareKeyboardMethodID=0;
+static jmethodID m_isSoftwareKeyboardVisibleMethodID=0;
 // Software keyboard support
 
 // Clipboard support
@@ -296,6 +297,20 @@ namespace QtAndroid
         qDebug()<<"hideSoftwareKeyboard";
         env->CallStaticVoidMethod(m_applicationClass, m_hideSoftwareKeyboardMethodID);
         m_javaVM->DetachCurrentThread();
+    }
+
+    bool isSoftwareKeyboardVisible()
+    {
+        JNIEnv* env;
+        if (m_javaVM->AttachCurrentThread(&env, NULL)<0)
+        {
+            qCritical()<<"AttachCurrentThread failed";
+            return false;
+        }
+        qDebug()<<"isSoftwareKeyboardVisible";
+        jboolean ret = env->CallStaticBooleanMethod(m_applicationClass, m_isSoftwareKeyboardVisibleMethodID);
+        m_javaVM->DetachCurrentThread();
+        return ret;
     }
 
     void setFullScreen(QWidget * widget)
@@ -989,6 +1004,7 @@ static int registerNativeMethods(JNIEnv* env, const char* className,
     m_showSoftwareKeyboardMethodID = env->GetStaticMethodID(m_applicationClass, "showSoftwareKeyboard", "(IIIII)V");
     m_resetSoftwareKeyboardMethodID = env->GetStaticMethodID(m_applicationClass, "resetSoftwareKeyboard", "()V");
     m_hideSoftwareKeyboardMethodID = env->GetStaticMethodID(m_applicationClass, "hideSoftwareKeyboard", "()V");
+    m_isSoftwareKeyboardVisibleMethodID = env->GetStaticMethodID(m_applicationClass, "isSoftwareKeyboardVisible", "()Z");
     m_setFullScreenMethodID = env->GetStaticMethodID(m_applicationClass, "setFullScreen", "(Z)V");
 
 #ifdef ANDROID_PLUGIN_OPENGL

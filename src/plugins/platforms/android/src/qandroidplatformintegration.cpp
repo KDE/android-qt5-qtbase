@@ -40,7 +40,6 @@
 ****************************************************************************/
 
 #include "qandroidplatformintegration.h"
-#include "qandroidinputcontext.h"
 #include "qabstracteventdispatcher.h"
 #include "androidjnimain.h"
 #include <QtGui/private/qpixmap_raster_p.h>
@@ -103,8 +102,6 @@ QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &para
 
     m_mainThread=QThread::currentThread();
     QtAndroid::setAndroidPlatformIntegration(this);
-// FIXME
-//    qApp->setInputContext( new QAndroidInputContext() );
     m_androidFDB = new QAndroidPlatformFontDatabase();
     m_androidPlatformServices = new QAndroidPlatformServices();
     m_androidPlatformClipboard = new QAndroidPlatformClipboard();
@@ -171,6 +168,11 @@ static QAndroidPlatformClipboard * clipboard = 0;
     return clipboard;
 }
 #endif
+
+QPlatformInputContext *QAndroidPlatformIntegration::inputContext() const
+{
+    return &m_platformInputContext;
+}
 
 QPlatformNativeInterface *QAndroidPlatformIntegration::nativeInterface() const
 {

@@ -49,6 +49,7 @@
 
 #include <jni.h>
 #include <qandroidplatformscreen.h>
+#include "qandroidinputcontext.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -61,7 +62,7 @@ public:
     virtual void *nativeResourceForIntegration(const QByteArray &resource);
 };
 
-class QAndroidPlatformIntegration : public QPlatformIntegration/*, public QPlatformMenu*/
+class QAndroidPlatformIntegration : public QPlatformIntegration
 {
     friend class QAndroidPlatformScreen;
     friend class QAndroidEglFSScreen;
@@ -84,6 +85,8 @@ public:
 #ifndef QT_NO_CLIPBOARD
     virtual QPlatformClipboard *clipboard() const;
 #endif
+    virtual QPlatformInputContext *inputContext() const;
+
     virtual QPlatformNativeInterface *nativeInterface() const;
     virtual QPlatformServices *services() const;
 
@@ -105,6 +108,7 @@ private:
     QAndroidPlatformNativeInterface *m_androidPlatformNativeInterface;
     QAndroidPlatformServices *m_androidPlatformServices;
     QPlatformClipboard *m_androidPlatformClipboard;
+    mutable QAndroidInputContext m_platformInputContext;
 
 #ifdef ANDROID_PLUGIN_OPENGL
 public:

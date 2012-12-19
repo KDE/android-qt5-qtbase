@@ -224,6 +224,11 @@ public class QtActivityDelegate
         m_keyboardIsHiding=false;
     }
 
+    public boolean isSoftwareKeyboardVisible()
+    {
+        return m_keyboardIsVisible;
+    }
+
     public boolean loadApplication(Activity activity, ClassLoader classLoader, Bundle loaderParams)
     {
         /// check parameters integrity

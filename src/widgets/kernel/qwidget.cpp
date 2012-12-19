@@ -8580,6 +8580,9 @@ void QWidget::focusOutEvent(QFocusEvent *)
 {
     if (focusPolicy() != Qt::NoFocus || !isWindow())
         update();
+    // automatically hide the SIP
+    if (qApp->autoSipEnabled() && testAttribute(Qt::WA_InputMethodEnabled))
+        qApp->inputMethod()->hide();
 }
 
 /*!
