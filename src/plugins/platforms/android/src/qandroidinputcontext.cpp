@@ -348,8 +348,7 @@ void QAndroidInputContext::showInputPanel()
     QSharedPointer<QInputMethodQueryEvent> query = focusObjectInputMethodQuery();
     if (query.isNull())
         return;
-#warning TODO find a way to get focusObject screen rect !!!
-    QRect rect(0,0,100,50);
+    QRect rect = query->value(Qt::ImWidgetScreenGeometry).toRect();
     QtAndroid::showSoftwareKeyboard(rect.left(), rect.top(), rect.width(), rect.height(), query->value(Qt::ImHints).toUInt());
 }
 

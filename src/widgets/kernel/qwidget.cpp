@@ -7941,6 +7941,7 @@ bool QWidget::event(QEvent *event)
                     query->setValue(q, v);
                 }
             }
+            query->setValue(Qt::ImWidgetScreenGeometry, QRect(mapToGlobal(pos()), size()));
             query->accept();
         }
         break;
