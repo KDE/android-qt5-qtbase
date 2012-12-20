@@ -27,5 +27,4 @@ unix {
 
 android{
     HEADERS += arch/qatomic_android.h
-#    SOURCES += arch/qatomic_android.cpp
 }

@@ -1335,7 +1335,7 @@ while [ "$#" -gt 0 ]; do
             UNKNOWN_OPT=yes
         fi
 	;;
-    arch|host-arch)
+    host-arch)
         OPT_OBSOLETE_HOST_ARG=yes
         ;;
     harfbuzz)
@@ -1444,6 +1444,9 @@ while [ "$#" -gt 0 ]; do
             CFG_REDUCE_EXPORTS=no
             ;;
         esac
+        ;;
+    arch)
+        CFG_ARCH="$VAL"
         ;;
     device)
         XPLATFORM=`resolveDeviceMkspec $VAL`
@@ -3929,7 +3932,7 @@ fi
 rm -f "$OUTFILE" 2>/dev/null
 [ -z "$CFG_ARCH" ] && CFG_ARCH="unknown"
 
-if [ "$QMAKESPEC" != "$XQMAKESPEC" ]; then
+if [ "$QMAKESPEC" != "$XQMAKESPEC" && "$CFG_ARCH" != "unknown"]; then
     # Do the same test again, using the host compiler
     SYSROOT_FLAG= "$unixtests/arch.test" "$QMAKESPEC" $OPT_VERBOSE "$relpath" "$outpath" "$OUTFILE" "CFG_HOST" $MAC_SDK_FLAG
     if [ $? -eq 0 ]; then

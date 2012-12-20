@@ -286,9 +286,8 @@ then
         fi
 
 	cp -f $NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$NDK_TOOLCHAIN_VERSION/libs/$TARGET_ARCH/libgnustl_shared.so $SRC_DIR_QT/lib
-	# -arch $ANDROID_ARCHITECTURE 
 	$SRC_DIR_QT/configure -v -opensource -qpa \
-		-fast -xplatform android-g++ \
+		-fast -xplatform android-g++ -arch $ANDROID_ARCHITECTURE \
 		-no-largefile \
 		-openssl -pch \
 		-nomake demos -nomake examples -nomake tests -confirm-license \
