@@ -42,11 +42,11 @@
 #ifndef QANDROIDSTYLE_H
 #define QANDROIDSTYLE_H
 
-#include <QList>
-#include <QMargins>
-#include <QCommonStyle>
-#include <QHash>
-#include <QVariantMap>
+#include <QtCore/QList>
+#include <QtCore/QMargins>
+#include <QtWidgets/QCommonStyle>
+#include <QtCore/QHash>
+#include <QtCore/QVariantMap>
 
 QT_BEGIN_HEADER
 

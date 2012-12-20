@@ -31,6 +31,13 @@
 #include <sys/cdefs.h>
 #include <stdint.h>
 
+#if 0
+// silence syncqt warnings
+QT_BEGIN_HEADER
+
+QT_BEGIN_NAMESPACE
+#endif
+
 __BEGIN_DECLS
 
 typedef enum {
@@ -54,5 +61,11 @@ enum {
 extern uint64_t    android_getCpuFeatures(void);
 
 __END_DECLS
+
+#if 0
+// silence syncqt warnings
+QT_END_NAMESPACE
+QT_END_HEADER
+#endif
 
 #endif /* CPU_FEATURES_H */

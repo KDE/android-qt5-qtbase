@@ -10,8 +10,15 @@
 #ifndef JSON_H
 #define JSON_H
 
-#include <QByteArray>
-#include <QVariant>
+#include <QtCore/QByteArray>
+#include <QtCore/QVariant>
+
+#if 0
+// silence syncqt warnings
+QT_BEGIN_HEADER
+
+QT_BEGIN_NAMESPACE
+#endif
 
 class JsonReader
 {
@@ -53,6 +60,12 @@ private:
     QString m_autoFormattingIndent;
     void *reserved;
 };
+
+#if 0
+// silence syncqt warnings
+QT_END_NAMESPACE
+QT_END_HEADER
+#endif
 
 #endif // JSON_H
 

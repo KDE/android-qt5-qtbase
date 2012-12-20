@@ -42,6 +42,13 @@
 #ifndef QATOMIC_ANDROID_H
 #define QATOMIC_ANDROID_H
 
+#if 0
+// silence syncqt warnings
+QT_BEGIN_HEADER
+
+QT_BEGIN_NAMESPACE
+#endif
+
 #if defined(QT_USE_FAST_ATOMICS) || defined(QT_BUILDING_QT)
 # if defined(Q_PROCESSOR_ARM_V7)
 #  include "QtCore/qatomic_armv7.h"
@@ -49,6 +56,12 @@
 #  include "QtCore/qatomic_armv6.h"
 # elif defined(Q_PROCESSOR_ARM_V5)
 #  include "QtCore/qatomic_armv5.h"
+# elif defined (Q_PROCESSOR_X86)
+#  include "QtCore/qatomic_x86.h"
+# elif defined (Q_PROCESSOR_MIPS)
+#  include "QtCore/qatomic_mips.h"
+# else
+# error "Unhandled Android platform"
 # endif
 #else
 # if /*defined(Q_COMPILER_ATOMICS) && defined(Q_COMPILER_CONSTEXPR)
@@ -58,6 +71,12 @@
 # else
 #  error "Unknown atomics"
 # endif
+#endif
+
+#if 0
+// silence syncqt warnings
+QT_END_NAMESPACE
+QT_END_HEADER
 #endif
 
 #endif // QATOMIC_ANDROID_H
