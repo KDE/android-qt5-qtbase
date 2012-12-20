@@ -99,6 +99,8 @@ QAndroidPlatformIntegration::QAndroidPlatformIntegration(const QStringList &para
     m_primaryScreen = new QAndroidPlatformScreen();
 #endif
     screenAdded(m_primaryScreen);
+    m_primaryScreen->setPhysicalSize(QSize(m_defaultPhysicalSizeWidth, m_defaultPhysicalSizeHeight));
+    m_primaryScreen->setGeometry(QRect(0,0, m_defaultGeometryWidth, m_defaultGeometryHeight));
 
     m_mainThread=QThread::currentThread();
     QtAndroid::setAndroidPlatformIntegration(this);
