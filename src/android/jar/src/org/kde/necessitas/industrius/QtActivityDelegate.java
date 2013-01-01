@@ -32,18 +32,24 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.method.MetaKeyKeyListener;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -117,6 +123,7 @@ public class QtActivityDelegate
     // case status
     private final int ImhNoAutoUppercase=0x2;
     private final int ImhPreferUppercase=0x8;
+    @SuppressWarnings("unused")
     private final int ImhPreferLowercase=0x10;
     private final int ImhUppercaseOnly=0x40000;
     private final int ImhLowercaseOnly=0x80000;
@@ -144,7 +151,6 @@ public class QtActivityDelegate
             }
         }, 5);
     }
-
 
     public void showSoftwareKeyboard(int x, int y, int width, int height, int inputHints)
     {
@@ -229,6 +235,23 @@ public class QtActivityDelegate
         return m_keyboardIsVisible;
     }
 
+    String getAppIconSize(Activity a)
+    {
+        int size = a.getResources().getDimensionPixelSize(android.R.dimen.app_icon_size);
+        if (size < 36 || size > 512) // check size sanity
+        {
+            DisplayMetrics metrics = new DisplayMetrics();
+            a.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            size = metrics.densityDpi/10*3;
+            if (size<36)
+                size = 36;
+
+            if (size>512)
+                size = 512;
+        }
+        return "\tQT_ANDROID_APP_ICON_SIZE="+size;
+    }
+
     public boolean loadApplication(Activity activity, ClassLoader classLoader, Bundle loaderParams)
     {
         /// check parameters integrity
@@ -248,7 +271,6 @@ public class QtActivityDelegate
                     @SuppressWarnings("rawtypes")
                     Class initClass = classLoader.loadClass(className);
                     Object staticInitDataObject=initClass.newInstance(); // create an instance
-                    @SuppressWarnings("unchecked")
                     Method m = initClass.getMethod("setActivity", Activity.class, Object.class);
                     m.invoke(staticInitDataObject, m_activity, this);
                 } catch (Exception e) {
@@ -286,6 +308,8 @@ public class QtActivityDelegate
             additionalEnvironmentVariables += "\tQT_ANDROID_FONTS=Droid Sans;Droid Sans Fallback";
         else
             additionalEnvironmentVariables += "\tQT_ANDROID_FONTS=Roboto;Droid Sans;Droid Sans Fallback";
+
+        additionalEnvironmentVariables += getAppIconSize(activity);
 
         if (m_environmentVariables != null && m_environmentVariables.length()>0)
             m_environmentVariables=additionalEnvironmentVariables+"\t"+m_environmentVariables;
@@ -383,6 +407,7 @@ public class QtActivityDelegate
                 , new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
                         ViewGroup.LayoutParams.FILL_PARENT));
         m_layout.bringChildToFront(m_surface);
+        m_activity.registerForContextMenu(m_layout);
     }
 
 
@@ -451,6 +476,17 @@ public class QtActivityDelegate
     {
         if (!m_started)
             return false;
+
+        if (keyCode == KeyEvent.KEYCODE_MENU)
+        {
+            try {
+                return (Boolean)m_super_onKeyDown.invoke(m_activity, keyCode, event);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
         m_metaState = MetaKeyKeyListener.handleKeyDown(m_metaState, keyCode, event);
         int c = event.getUnicodeChar(MetaKeyKeyListener.getMetaState(m_metaState));
         int lc=c;
@@ -472,6 +508,16 @@ public class QtActivityDelegate
     {
         if (!m_started)
             return false;
+
+        if (keyCode == KeyEvent.KEYCODE_MENU)
+        {
+            try {
+                return (Boolean)m_super_onKeyUp.invoke(m_activity, keyCode, event);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
 
         if (keyCode == KeyEvent.KEYCODE_BACK && m_keyboardIsVisible)
         {
@@ -502,5 +548,83 @@ public class QtActivityDelegate
             e.printStackTrace();
         }
         return false;
+    }
+
+    private boolean m_opionsMenuIsVisible = false;
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        Log.i(QtNative.QtTAG, "onCreateOptionsMenu");
+        menu.clear();
+        return true;
+    }
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        Log.i(QtNative.QtTAG, "onPrepareOptionsMenu");
+        m_opionsMenuIsVisible = true;
+        return QtNative.onPrepareOptionsMenu(menu);
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        Log.i(QtNative.QtTAG, "onOptionsItemSelected");
+        return QtNative.onOptionsItemSelected(item.getItemId(), item.isChecked());
+    }
+
+    public void onOptionsMenuClosed(Menu menu)
+    {
+        Log.i(QtNative.QtTAG, "onOptionsMenuClosed");
+        m_opionsMenuIsVisible = false;
+        QtNative.onOptionsMenuClosed(menu);
+    }
+
+    public void resetOptionsMenu()
+    {
+        Log.i(QtNative.QtTAG, "resetOptionsMenu");
+        if (m_opionsMenuIsVisible)
+            m_activity.closeOptionsMenu();
+    }
+    private boolean m_contextMenuVisible = false;
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                ContextMenuInfo menuInfo)
+    {
+        menu.clearHeader();
+        Log.i(QtNative.QtTAG, "onCreateContextMenu");
+        QtNative.onCreateContextMenu(menu);
+        m_contextMenuVisible = true;
+    }
+
+    public void onContextMenuClosed(Menu menu)
+    {
+        if (!m_contextMenuVisible)
+        {
+            Log.e(QtNative.QtTAG, "invalid onContextMenuClosed call");
+                return;
+        }
+        m_contextMenuVisible = false;
+        Log.i(QtNative.QtTAG, "onContextMenuClosed");
+        QtNative.onContextMenuClosed(menu);
+    }
+
+    public boolean onContextItemSelected(MenuItem item)
+    {
+        Log.i(QtNative.QtTAG, "onContextItemSelected");
+        return QtNative.onContextItemSelected(item.getItemId(), item.isChecked());
+    }
+
+    public void openContextMenu()
+    {
+        Log.i(QtNative.QtTAG, "openContextMenu");
+        m_layout.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    m_activity.openContextMenu(m_layout);
+                }
+            }, 10);
+    }
+
+    public void closeContextMenu()
+    {
+        Log.i(QtNative.QtTAG, "closeContextMenu");
+        m_activity.closeContextMenu();
     }
 }

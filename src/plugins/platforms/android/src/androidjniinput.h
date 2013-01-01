@@ -39,37 +39,20 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
-#include "androidjnimenu.h"
+#ifndef ANDROIDJNIINPUT_H
+#define ANDROIDJNIINPUT_H
+#include <jni.h>
 
-#include <QDebug>
-
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+namespace QtAndroidInput
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
+    // Software keyboard support
+    void showSoftwareKeyboard(int top, int left, int width, int height, int inputHints);
+    void resetSoftwareKeyboard();
+    void hideSoftwareKeyboard();
+    bool isSoftwareKeyboardVisible();
+    // Software keyboard support
+
+    bool registerNatives(JNIEnv* env);
 }
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
-{
-    QtAndroidMenu::setActiveTopLevelWindow(w);
-}
-
-QRegion QAndroidPlatformScreen::doRedraw()
-{
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
-}
+#endif // ANDROIDJNIINPUT_H

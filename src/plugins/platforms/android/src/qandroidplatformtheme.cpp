@@ -39,37 +39,22 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
-#include "androidjnimenu.h"
+#include "qandroidplatformtheme.h"
+#include "qandroidplatformmenubar.h"
+#include "qandroidplatformmenu.h"
+#include "qandroidplatformmenuitem.h"
 
-#include <QDebug>
-
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+QPlatformMenuBar *QAndroidPlatformTheme::createPlatformMenuBar() const
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
+    return new QAndroidPlatformMenuBar;
 }
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
+QPlatformMenu *QAndroidPlatformTheme::createPlatformMenu() const
 {
-    QtAndroidMenu::setActiveTopLevelWindow(w);
+    return new QAndroidPlatformMenu;
 }
 
-QRegion QAndroidPlatformScreen::doRedraw()
+QPlatformMenuItem *QAndroidPlatformTheme::createPlatformMenuItem() const
 {
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
+    return new QAndroidPlatformMenuItem;
 }

@@ -39,37 +39,65 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
+#include "qandroidplatformmenubar.h"
+#include "qandroidplatformmenu.h"
 #include "androidjnimenu.h"
 
-#include <QDebug>
 
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+QAndroidPlatformMenuBar::QAndroidPlatformMenuBar()
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
+    m_parentWindow = 0;
+    QtAndroidMenu::addMenuBar(this);
 }
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
+QAndroidPlatformMenuBar::~QAndroidPlatformMenuBar()
 {
-    QtAndroidMenu::setActiveTopLevelWindow(w);
+    QtAndroidMenu::removeMenuBar(this);
 }
 
-QRegion QAndroidPlatformScreen::doRedraw()
+void QAndroidPlatformMenuBar::insertMenu(QPlatformMenu *menu, QPlatformMenu *before)
 {
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
+    QMutexLocker lock(&m_menusListMutext);
+    m_menus.insert(qFind(m_menus.begin(), m_menus.end(), static_cast<QAndroidPlatformMenu*>(before)), static_cast<QAndroidPlatformMenu*>(menu));
+}
+
+void QAndroidPlatformMenuBar::removeMenu(QPlatformMenu *menu)
+{
+    QMutexLocker lock(&m_menusListMutext);
+    m_menus.erase(qFind(m_menus.begin(), m_menus.end(), static_cast<QAndroidPlatformMenu*>(menu)));
+}
+
+void QAndroidPlatformMenuBar::syncMenu(QPlatformMenu *menu)
+{
+    QtAndroidMenu::syncMenu(static_cast<QAndroidPlatformMenu*>(menu));
+}
+
+void QAndroidPlatformMenuBar::handleReparent(QWindow *newParentWindow)
+{
+    m_parentWindow = newParentWindow;
+    QtAndroidMenu::setMenuBar(this, newParentWindow);
+    Q_UNUSED(newParentWindow)
+}
+
+QPlatformMenu *QAndroidPlatformMenuBar::menuForTag(quintptr tag) const
+{
+    foreach(QPlatformMenu * menu, m_menus)
+        if (menu->tag() == tag)
+            return menu;
+    return 0;
+}
+
+QWindow *QAndroidPlatformMenuBar::parentWindow()
+{
+    return m_parentWindow;
+}
+
+const QAndroidPlatformMenuBar::PlatformMenusType &QAndroidPlatformMenuBar::menus()
+{
+    return m_menus;
+}
+
+QMutex *QAndroidPlatformMenuBar::menusListMutext()
+{
+    return &m_menusListMutext;
 }

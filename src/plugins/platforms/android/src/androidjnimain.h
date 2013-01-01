@@ -41,59 +41,67 @@
 
 #ifndef ANDROID_APP_H
 #define ANDROID_APP_H
+#include <android/log.h>
 #ifdef ANDROID_PLUGIN_OPENGL
 #include <EGL/eglplatform.h>
 #endif
 
 #include <jni.h>
 #include "native/include/android/asset_manager.h"
-#include <QString>
 
 class QImage;
 class QRect;
 class QPoint;
 class QThread;
 class QAndroidPlatformIntegration;
-class QMenuBar;
-class QMenu;
 class QWidget;
-class QAndroidPlatformClipboard;
+class QString;
+class QWindow;
 
 namespace QtAndroid
 {
-    typedef union {
-        JNIEnv* nativeEnvironment;
-        void* venv;
-    } UnionJNIEnvToVoid;
-
-    void setAndroidPlatformIntegration(QAndroidPlatformIntegration * androidGraphicsSystem);
+    void setAndroidPlatformIntegration(QAndroidPlatformIntegration * androidPlatformIntegration);
     void setQtThread(QThread * thread);
 
     void setFullScreen(QWidget * widget);
 
-    // Software keyboard support
-    void showSoftwareKeyboard(int top, int left, int width, int height, int inputHints);
-    void resetSoftwareKeyboard();
-    void hideSoftwareKeyboard();
-    bool isSoftwareKeyboardVisible();
-    // Software keyboard support
-
-    // Clipboard support
-    void setClipboardListener(QAndroidPlatformClipboard* listener);
-    void setClipboardText(const QString &text);
-    bool hasClipboardText();
-    QString clipboardText();
-    // Clipboard support
-
 #ifndef ANDROID_PLUGIN_OPENGL
-    void flushImage(const QPoint & pos, const QImage & image, const QRect & rect);
+    void flushImage(const QPoint &pos, const QImage &image, const QRect &rect);
 #else
     EGLNativeWindowType getNativeWindow(bool waitToCreate=true);
 #endif
 
+    QWindow * topLevelWindowAt(const QPoint &globalPos);
+    int desktopWidthPixels();
+    int desktopHeightPixels();
     JavaVM * javaVM();
     jclass findClass(const QString & className, JNIEnv * env);
     AAssetManager * assetManager();
     jclass applicationClass();
+
+    jobject createBitmap(QImage img, JNIEnv * env = 0);
+    jobject createBitmapDrawable(jobject bitmap, JNIEnv * env = 0);
+    struct AttachedJNIEnv
+    {
+        AttachedJNIEnv()
+        {
+            if (QtAndroid::javaVM()->AttachCurrentThread(&jniEnv, NULL)<0)
+            {
+                __android_log_print(ANDROID_LOG_ERROR, "Qt", "AttachCurrentThread failed");
+                jniEnv = 0;
+                return;
+            }
+        }
+        ~AttachedJNIEnv()
+        {
+             QtAndroid::javaVM()->DetachCurrentThread();
+        }
+
+        JNIEnv * jniEnv;
+    };
+    const char * classErrorMsgFmt();
+    const char * methodErrorMsgFmt();
+    const char * qtTagText();
+
 }
 #endif // ANDROID_APP_H

@@ -39,37 +39,31 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
-#include "androidjnimenu.h"
+#ifndef ANDROIDJNIMENU_H
+#define ANDROIDJNIMENU_H
 
-#include <QDebug>
+#include <jni.h>
 
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+class QAndroidPlatformMenuBar;
+class QAndroidPlatformMenu;
+class QAndroidPlatformMenuItem;
+class QWindow;
+
+namespace QtAndroidMenu
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
+    // Menu support
+    void showContextMenu(QAndroidPlatformMenu *menu, JNIEnv* env = 0);
+    void hideContextMenu(QAndroidPlatformMenu *menu);
+    void syncMenu(QAndroidPlatformMenu *menu);
+    void androidPlatformMenuDestroyed(QAndroidPlatformMenu *menu);
+
+    void setMenuBar(QAndroidPlatformMenuBar *menuBar, QWindow *window);
+    void setActiveTopLevelWindow(QWindow *window);
+    void addMenuBar(QAndroidPlatformMenuBar *menuBar);
+    void removeMenuBar(QAndroidPlatformMenuBar *menuBar);
+
+    // Menu support
+    bool registerNatives(JNIEnv* env);
 }
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
-{
-    QtAndroidMenu::setActiveTopLevelWindow(w);
-}
-
-QRegion QAndroidPlatformScreen::doRedraw()
-{
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
-}
+#endif // ANDROIDJNIMENU_H

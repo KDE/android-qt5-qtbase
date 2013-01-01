@@ -72,6 +72,7 @@ public:
     virtual void removeWindow(QFbWindow *window);
     virtual void raise(QFbWindow *window);
     virtual void lower(QFbWindow *window);
+    virtual void topWindowChanged(QWindow * ){}
 
 public slots:
     virtual void setDirty(const QRect &rect);

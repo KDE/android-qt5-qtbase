@@ -39,37 +39,51 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
-#include "androidjnimenu.h"
+#ifndef QANDROIDPLATFORMMENUITEM_H
+#define QANDROIDPLATFORMMENUITEM_H
+#include <qpa/qplatformmenu.h>
 
-#include <QDebug>
+class QAndroidPlatformMenu;
 
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+class QAndroidPlatformMenuItem : public QPlatformMenuItem
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
-}
+public:
+    QAndroidPlatformMenuItem();
+    virtual void setTag(quintptr tag);
+    virtual quintptr tag() const;
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
-{
-    QtAndroidMenu::setActiveTopLevelWindow(w);
-}
+    virtual void setText(const QString &text);
+    const QString &text();
+    virtual void setIcon(const QIcon &icon);
+    const QIcon &icon();
+    virtual void setMenu(QPlatformMenu *menu);
+    QAndroidPlatformMenu *menu();
+    virtual void setVisible(bool isVisible);
+    bool isVisible();
+    virtual void setIsSeparator(bool isSeparator);
+    bool isSeparator();
+    virtual void setFont(const QFont &font);
+    virtual void setRole(MenuRole role);
+    MenuRole role();
+    virtual void setCheckable(bool checkable);
+    bool isCheckable();
+    virtual void setChecked(bool isChecked);
+    bool isChecked();
+    virtual void setShortcut(const QKeySequence& shortcut);
+    virtual void setEnabled(bool enabled);
+    bool isEnabled();
 
-QRegion QAndroidPlatformScreen::doRedraw()
-{
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
-}
+private:
+    quintptr m_tag;
+    QString m_text;
+    QIcon m_icon;
+    QAndroidPlatformMenu *m_menu;
+    bool m_isVisible;
+    bool m_isSeparator;
+    MenuRole m_role;
+    bool m_isCheckable;
+    bool m_isChecked;
+    bool m_isEnabled;
+};
+
+#endif // QANDROIDPLATFORMMENUITEM_H

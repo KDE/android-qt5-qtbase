@@ -30,12 +30,16 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
+import android.os.Build;
 import android.text.ClipboardManager;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MotionEvent;
 
 public class QtNative
@@ -434,7 +438,6 @@ public class QtNative
         {
             @SuppressWarnings("unused")
             Boolean returnValue = null;
-            @SuppressWarnings("unused")
             Semaphore semaphore = null;
             RunnableRes(Boolean ret, Semaphore sem)
             {
@@ -502,6 +505,36 @@ public class QtNative
         return m_clipboardManager.getText().toString();
     }
 
+    private static void openContextMenu()
+    {
+        runAction(new Runnable() {
+            @Override
+            public void run() {
+                m_activityDelegate.openContextMenu();
+            }
+        });
+    }
+
+    private static void closeContextMenu()
+    {
+        runAction(new Runnable() {
+            @Override
+            public void run() {
+                m_activityDelegate.closeContextMenu();
+            }
+        });
+    }
+
+    private static void resetOptionsMenu()
+    {
+        runAction(new Runnable() {
+            @Override
+            public void run() {
+                m_activityDelegate.resetOptionsMenu();
+            }
+        });
+    }
+
     // screen methods
     public static native void setDisplayMetrics(int screenWidthPixels,
                     int screenHeightPixels, int desktopWidthPixels,
@@ -533,4 +566,14 @@ public class QtNative
     // window methods
     public static native void updateWindow();
     // window methods
+
+    // menu methods
+    public static native boolean onPrepareOptionsMenu(Menu menu);
+    public static native boolean onOptionsItemSelected(int itemId, boolean checked);
+    public static native void onOptionsMenuClosed(Menu menu);
+
+    public static native void onCreateContextMenu(ContextMenu menu);
+    public static native boolean onContextItemSelected(int itemId, boolean checked);
+    public static native void onContextMenuClosed(Menu menu);
+    // menu methods
 }

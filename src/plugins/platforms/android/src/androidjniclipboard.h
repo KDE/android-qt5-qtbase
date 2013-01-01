@@ -39,37 +39,24 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
-#include "androidjnimenu.h"
+#ifndef ANDROIDJNICLIPBOARD_H
+#define ANDROIDJNICLIPBOARD_H
 
-#include <QDebug>
+#include <jni.h>
+#include <QString>
 
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+class QAndroidPlatformClipboard;
+namespace QtAndroidClipboard
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
+
+    // Clipboard support
+    void setClipboardListener(QAndroidPlatformClipboard* listener);
+    void setClipboardText(const QString &text);
+    bool hasClipboardText();
+    QString clipboardText();
+    // Clipboard support
+
+    bool registerNatives(JNIEnv* env);
 }
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
-{
-    QtAndroidMenu::setActiveTopLevelWindow(w);
-}
-
-QRegion QAndroidPlatformScreen::doRedraw()
-{
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
-}
+#endif // ANDROIDJNICLIPBOARD_H

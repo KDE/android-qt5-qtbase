@@ -73,7 +73,9 @@ void QFbScreen::addWindow(QFbWindow *window)
     mWindowStack.prepend(window);
     invalidateRectCache();
     setDirty(window->geometry());
-    QWindowSystemInterface::handleWindowActivated(topWindow());
+    QWindow * w = topWindow();
+    QWindowSystemInterface::handleWindowActivated(w);
+    topWindowChanged(w);
 }
 
 void QFbScreen::removeWindow(QFbWindow *window)
@@ -81,7 +83,9 @@ void QFbScreen::removeWindow(QFbWindow *window)
     mWindowStack.removeOne(window);
     invalidateRectCache();
     setDirty(window->geometry());
-    QWindowSystemInterface::handleWindowActivated(topWindow());
+    QWindow * w = topWindow();
+    QWindowSystemInterface::handleWindowActivated(w);
+    topWindowChanged(w);
 }
 
 void QFbScreen::raise(QFbWindow *window)
@@ -92,7 +96,9 @@ void QFbScreen::raise(QFbWindow *window)
     mWindowStack.move(index, 0);
     invalidateRectCache();
     setDirty(window->geometry());
-    QWindowSystemInterface::handleWindowActivated(topWindow());
+    QWindow * w = topWindow();
+    QWindowSystemInterface::handleWindowActivated(w);
+    topWindowChanged(w);
 }
 
 void QFbScreen::lower(QFbWindow *window)
@@ -103,7 +109,9 @@ void QFbScreen::lower(QFbWindow *window)
     mWindowStack.move(index, mWindowStack.size() - 1);
     invalidateRectCache();
     setDirty(window->geometry());
-    QWindowSystemInterface::handleWindowActivated(topWindow());
+    QWindow * w = topWindow();
+    QWindowSystemInterface::handleWindowActivated(w);
+    topWindowChanged(w);
 }
 
 QWindow * QFbScreen::topWindow()

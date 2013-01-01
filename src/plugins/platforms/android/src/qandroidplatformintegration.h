@@ -90,7 +90,8 @@ public:
     virtual QPlatformNativeInterface *nativeInterface() const;
     virtual QPlatformServices *services() const;
 
-    virtual QPlatformMenu * platformMenu();
+    virtual QStringList themeNames() const;
+    virtual QPlatformTheme *createPlatformTheme(const QString &name) const;
 
     void pauseApp();
     void resumeApp();

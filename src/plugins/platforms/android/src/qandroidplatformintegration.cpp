@@ -61,6 +61,7 @@
 #include "qandroidplatformscreen.h"
 #include "qandroidplatformwindow.h"
 #include <QtPlatformSupport/private/qfbbackingstore_p.h>
+#include "qandroidplatformtheme.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -186,10 +187,19 @@ QPlatformServices *QAndroidPlatformIntegration::services() const
     return m_androidPlatformServices;
 }
 
-QPlatformMenu * QAndroidPlatformIntegration::platformMenu()
+static const QLatin1String androidThemeName("android");
+QStringList QAndroidPlatformIntegration::themeNames() const
 {
+    return QStringList(QString(androidThemeName));
+}
+
+QPlatformTheme *QAndroidPlatformIntegration::createPlatformTheme(const QString &name) const
+{
+    if (androidThemeName == name)
+        return new QAndroidPlatformTheme;
     return 0;
 }
+
 
 void QAndroidPlatformIntegration::setDefaultDisplayMetrics(int gw, int gh, int sw, int sh)
 {

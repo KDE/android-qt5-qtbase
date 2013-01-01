@@ -39,37 +39,53 @@
 **
 ****************************************************************************/
 
-#include "qandroidplatformscreen.h"
-#include "qandroidplatformintegration.h"
-#include "androidjnimain.h"
-#include "androidjnimenu.h"
+#ifndef QANDROIDPLATFORMMENU_H
+#define QANDROIDPLATFORMMENU_H
 
-#include <QDebug>
+#include <qpa/qplatformmenu.h>
+#include <qvector.h>
+#include <qmutex.h>
 
-QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()
+class QAndroidPlatformMenuItem;
+class QAndroidPlatformMenu : public QPlatformMenu
 {
-    mGeometry = QRect(0, 0, QAndroidPlatformIntegration::m_defaultGeometryWidth, QAndroidPlatformIntegration::m_defaultGeometryHeight);
-    mFormat = QImage::Format_RGB16;
-    mDepth = 16;
-    mPhysicalSize.setHeight(QAndroidPlatformIntegration::m_defaultPhysicalSizeHeight);
-    mPhysicalSize.setWidth(QAndroidPlatformIntegration::m_defaultPhysicalSizeWidth);
-    initializeCompositor();
-    qDebug()<<"QAndroidPlatformScreen::QAndroidPlatformScreen():QFbScreen()";
-}
+public:
+    typedef QVector<QAndroidPlatformMenuItem *> PlatformMenuItemsType;
 
-void QAndroidPlatformScreen::topWindowChanged(QWindow *w)
-{
-    QtAndroidMenu::setActiveTopLevelWindow(w);
-}
+public:
+    QAndroidPlatformMenu();
+    ~QAndroidPlatformMenu();
 
-QRegion QAndroidPlatformScreen::doRedraw()
-{
-    QRegion touched;
-    touched = QFbScreen::doRedraw();
-    if (touched.isEmpty())
-        return touched;
-//    QVector<QRect> rects = touched.rects();
-//    for (int i = 0; i < rects.size(); i++)
-    QtAndroid::flushImage(mGeometry.topLeft(), *mScreenImage, touched.boundingRect());
-    return touched;
-}
+    virtual void insertMenuItem(QPlatformMenuItem *menuItem, QPlatformMenuItem *before);
+    virtual void removeMenuItem(QPlatformMenuItem *menuItem);
+    virtual void syncMenuItem(QPlatformMenuItem *menuItem);
+    virtual void syncSeparatorsCollapsible(bool enable);
+
+    virtual void setTag(quintptr tag);
+    virtual quintptr tag() const;
+    virtual void setText(const QString &text);
+    const QString &text();
+    virtual void setIcon(const QIcon &icon);
+    const QIcon &icon();
+    virtual void setEnabled(bool enabled);
+    bool isEnabled();
+    virtual void setVisible(bool visible);
+    bool isVisible();
+
+    virtual QPlatformMenuItem *menuItemAt(int position) const;
+    virtual QPlatformMenuItem *menuItemForTag(quintptr tag) const;
+
+    const PlatformMenuItemsType &menuItems();
+    QMutex *menuItemsMutex();
+
+private:
+    PlatformMenuItemsType m_menuItems;
+    quintptr m_tag;
+    QString m_text;
+    QIcon m_icon;
+    bool m_enabled;
+    bool m_isVisible;
+    QMutex m_menuItemsMutex;
+};
+
+#endif // QANDROIDPLATFORMMENU_H

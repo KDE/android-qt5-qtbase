@@ -49,6 +49,7 @@ class QAndroidPlatformScreen : public QFbScreen
     Q_OBJECT
 public:
     QAndroidPlatformScreen();
+    virtual void topWindowChanged(QWindow * w);
 
 public slots:
     QRegion doRedraw();

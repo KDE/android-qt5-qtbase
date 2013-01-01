@@ -43,6 +43,7 @@
 
 #include "qandroidinputcontext.h"
 #include "androidjnimain.h"
+#include "androidjniinput.h"
 #include <QDebug>
 #include <qevent.h>
 #include <qguiapplication.h>
@@ -307,9 +308,9 @@ void QAndroidInputContext::reset()
 {
     clear();
     if (qGuiApp->focusObject())
-        QtAndroid::resetSoftwareKeyboard();
+        QtAndroidInput::resetSoftwareKeyboard();
     else
-        QtAndroid::hideSoftwareKeyboard();
+        QtAndroidInput::hideSoftwareKeyboard();
 }
 
 void QAndroidInputContext::commit()
@@ -349,17 +350,17 @@ void QAndroidInputContext::showInputPanel()
     if (query.isNull())
         return;
     QRect rect = query->value(Qt::ImWidgetScreenGeometry).toRect();
-    QtAndroid::showSoftwareKeyboard(rect.left(), rect.top(), rect.width(), rect.height(), query->value(Qt::ImHints).toUInt());
+    QtAndroidInput::showSoftwareKeyboard(rect.left(), rect.top(), rect.width(), rect.height(), query->value(Qt::ImHints).toUInt());
 }
 
 void QAndroidInputContext::hideInputPanel()
 {
-    QtAndroid::hideSoftwareKeyboard();
+    QtAndroidInput::hideSoftwareKeyboard();
 }
 
 bool QAndroidInputContext::isInputPanelVisible() const
 {
-    return QtAndroid::isSoftwareKeyboardVisible();
+    return QtAndroidInput::isSoftwareKeyboardVisible();
 }
 
 bool QAndroidInputContext::isComposing() const

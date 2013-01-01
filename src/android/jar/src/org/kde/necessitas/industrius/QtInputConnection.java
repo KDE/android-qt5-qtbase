@@ -26,12 +26,9 @@
 
 package org.kde.necessitas.industrius;
 
+import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.Intent;
-import android.text.Editable;
-import android.text.InputFilter;
-import android.util.Log;
-import android.view.KeyEvent;
+import android.os.Build;
 import android.view.View;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.CompletionInfo;
@@ -72,8 +69,6 @@ class QtNativeInputConnection
 public class QtInputConnection extends BaseInputConnection
 {
     private static final int ID_SELECT_ALL = android.R.id.selectAll;
-    private static final int ID_START_SELECTING_TEXT = android.R.id.startSelectingText;
-    private static final int ID_STOP_SELECTING_TEXT = android.R.id.stopSelectingText;
     private static final int ID_CUT = android.R.id.cut;
     private static final int ID_COPY = android.R.id.copy;
     private static final int ID_PASTE = android.R.id.paste;
