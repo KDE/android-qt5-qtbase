@@ -286,13 +286,18 @@ then
         fi
 
 	cp -f $NDK_ROOT/sources/cxx-stl/gnu-libstdc++/$NDK_TOOLCHAIN_VERSION/libs/$TARGET_ARCH/libgnustl_shared.so $SRC_DIR_QT/lib
-	$SRC_DIR_QT/configure -v -opensource -qpa \
-		-fast -xplatform android-g++ -arch $ANDROID_ARCHITECTURE \
+	$SRC_DIR_QT/configure -v \
+                -opensource \
+		-xplatform android-g++ \
 		-no-largefile \
-		-openssl -pch \
-		-nomake demos -nomake examples -nomake tests -confirm-license \
-		$CFGOPTIONS -prefix $DEST_DIR_QT \
-		-openssl-source $OPENSSL_ROOT -no-qpa-platform-guard || exit 1
+		-openssl \
+                -pch \
+                -nomake examples \
+                -nomake tests \
+                -confirm-license \
+		$CFGOPTIONS \
+		-openssl-source $OPENSSL_ROOT \
+                -no-qpa-platform-guard || exit 1
 fi
 
 if [ "$OSTYPE_MAJOR" = "linux-gnu" ] ; then
