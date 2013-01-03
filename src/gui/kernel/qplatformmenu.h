@@ -80,6 +80,7 @@ public:
     virtual void setIsSeparator(bool isSeparator) = 0;
     virtual void setFont(const QFont &font) = 0;
     virtual void setRole(MenuRole role) = 0;
+    virtual void setCheckable(bool checkable) = 0;
     virtual void setChecked(bool isChecked) = 0;
     virtual void setShortcut(const QKeySequence& shortcut) = 0;
     virtual void setEnabled(bool enabled) = 0;
@@ -101,6 +102,7 @@ public:
     virtual quintptr tag()const = 0;
 
     virtual void setText(const QString &text) = 0;
+    virtual void setIcon(const QIcon &icon) = 0;
     virtual void setEnabled(bool enabled) = 0;
     virtual void setVisible(bool visible) = 0;
 

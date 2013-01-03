@@ -76,7 +76,7 @@ public:
     void syncModalState(bool modal);
 
     virtual void setText(const QString &text);
-
+    virtual void setIcon(const QIcon &icon){Q_UNUSED(icon)}
     void setParentItem(QCocoaMenuItem* item);
 
     inline NSMenu *nsMenu() const
